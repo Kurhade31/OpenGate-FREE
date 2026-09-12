@@ -1,0 +1,47 @@
+[
+  {
+    "id": "da-ga",
+    "paper": "DA",
+    "name": "General Aptitude",
+    "slug": "general-aptitude",
+    "description": "Verbal and numerical aptitude common to all GATE papers.",
+    "topics": ["verbal-aptitude", "numerical-aptitude", "reasoning"],
+    "sources": []
+  },
+  {
+    "id": "da-math",
+    "paper": "DA",
+    "name": "Mathematics & Statistics",
+    "slug": "math-stats",
+    "description": "Linear algebra, calculus, probability, statistics, hypothesis testing.",
+    "topics": ["linear-algebra", "calculus", "probability", "statistics", "hypothesis-testing"],
+    "sources": []
+  },
+  {
+    "id": "da-ds",
+    "paper": "DA",
+    "name": "Data Science Foundations",
+    "slug": "data-science",
+    "description": "Data wrangling, visualization, databases, SQL basics for DA.",
+    "topics": ["data-wrangling", "visualization", "databases-sql"],
+    "sources": []
+  },
+  {
+    "id": "da-ml",
+    "paper": "DA",
+    "name": "Machine Learning",
+    "slug": "machine-learning",
+    "description": "Regression, classification, clustering, overfitting, evaluation, trees, SVM, neural basics.",
+    "topics": ["regression", "classification", "clustering", "evaluation", "trees-svm", "neural-basics"],
+    "sources": []
+  },
+  {
+    "id": "da-ai",
+    "paper": "DA",
+    "name": "AI & Algorithms",
+    "slug": "ai-algorithms",
+    "description": "Search, optimization, Python/DSA essentials for DA problem solving.",
+    "topics": ["search-optimization", "python-dsa", "complexity"],
+    "sources": []
+  }
+]

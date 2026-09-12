@@ -1,0 +1,111 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Study planner" description="Free GATE study planner: enter exam date, hours and subjects to get a weekly plan with revision, mocks and buffers. Local-first, no account." canonicalPath="/tools/study-planner/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Tool · local-first</p>
+    <h1>Study planner</h1>
+    <p class="lead">Enter your paper, exam date, daily hours and subjects. The planner allocates weak subjects more time and shifts to revision + mocks near the exam. Assumptions are shown — it never predicts marks.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card">
+      <div class="form-grid">
+        <label>Paper<select id="paper"><option>CS</option><option>EC</option><option>EE</option><option>ME</option><option>CE</option><option>DA</option></select></label>
+        <label>Start date<input id="startDate" type="date" /></label>
+        <label>Target exam date<input id="examDate" type="date" value="2027-02-06" /></label>
+        <label>Hours per day (1–12)<input id="hours" type="number" min="1" max="12" value="4" /></label>
+        <label>Days off per week (0–3)<input id="off" type="number" min="0" max="3" value="1" /></label>
+        <label>Subjects (comma separated, confidence :1..5)<textarea id="subjects" rows="3">Operating Systems, DBMS, Computer Networks, Algorithms</textarea></label>
+        <label>Custom tasks (one per line)<textarea id="custom" rows="2" placeholder="e.g. College exam week — light only"></textarea></label>
+        <button class="btn primary" id="gen">Generate plan</button>
+        <p class="meta" id="err" role="alert"></p>
+      </div>
+    </div>
+    <div class="card"><h3>How it allocates</h3><ul><li>Lower confidence → more days (set confidence by suffix <code>:1..5</code>, e.g. <code>DBMS:2</code>).</li><li>Last 4 weeks: revision blocks; last 2 weeks: mocks.</li><li>Off-days are light revision, skipped near the exam.</li></ul><p class="meta">Example: <code>OS:2, DBMS:4, CN:3</code></p></div>
+  </div></section>
+  <section class="section"><div class="wrap"><div id="out"></div></div></section>
+</Base>
+<script>
+  function toUTCDate(iso) { const [y,m,d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m-1, d)); }
+  function toISO(d) { return d.toISOString().slice(0,10); }
+  document.getElementById('gen')?.addEventListener('click', () => {
+    const err = document.getElementById('err');
+    const out = document.getElementById('out');
+    err.textContent = '';
+    try {
+      const examISO = document.getElementById('examDate').value;
+      const hours = Number(document.getElementById('hours').value);
+      const off = Number(document.getElementById('off').value);
+      const rawSubs = document.getElementById('subjects').value.split(',').map((s) => s.trim()).filter(Boolean);
+      if (!examISO) throw new Error('Pick an exam date.');
+      if (!(hours >= 1 && hours <= 12)) throw new Error('Hours must be 1–12.');
+      if (!rawSubs.length) throw new Error('Add at least one subject.');
+      const subjects = [];
+      const conf = {};
+      for (const r of rawSubs) {
+        const m = r.match(/^(.*?):([1-5])$/);
+        if (m) { subjects.push(m[1].trim()); conf[m[1].trim()] = Number(m[2]); }
+        else { subjects.push(r); conf[r] = 3; }
+      }
+      const startVal = document.getElementById('startDate').value;
+      const today = new Date(); today.setUTCHours(0,0,0,0);
+      const todayISO = startVal || today.toISOString().slice(0,10);
+      const t = toUTCDate(todayISO), e = toUTCDate(examISO);
+      const totalDays = Math.round((e - t) / 86400000);
+      if (totalDays < 7) throw new Error('Target must be at least 7 days after start. Leave start empty for today, or pick a custom target date.');
+      const weights = subjects.map((s) => ({ s, w: 6 - (conf[s] ?? 3) }));
+      const wSum = weights.reduce((a,b) => a + b.w, 0);
+      const order = [];
+      for (let i = 0; i < totalDays; i++) {
+        const target = (i * wSum) / totalDays;
+        let acc = 0, picked = weights[0].s;
+        for (const w of weights) { acc += w.w; if (target < acc) { picked = w.s; break; } }
+        order.push(picked);
+      }
+      let cursor = 0;
+      const days = [];
+      for (let i = 0; i < totalDays; i++) {
+        const d = new Date(t.getTime() + i * 86400000);
+        const date = toISO(d);
+        const left = totalDays - i;
+        const base = Math.round(hours * 60);
+        const isOff = off > 0 && (d.getUTCDay() % 7) < off && i < totalDays - 14;
+        if (isOff) { days.push({ date, focus: 'Rest / light revision', kind: 'buffer', s: 0, p: 20, r: 10 }); continue; }
+        let kind = 'study';
+        if (left <= 14 && i % 3 === 2) kind = 'mock';
+        else if ((left <= 28 && i % 4 === 3) || i % 7 === 6) kind = 'revision';
+        const focus = order[cursor % order.length];
+        if (kind === 'study') cursor++;
+        const s = kind === 'mock' ? Math.round(base*0.2) : kind === 'revision' ? Math.round(base*0.35) : Math.round(base*0.55);
+        const p = kind === 'mock' ? Math.round(base*0.65) : Math.round(base*0.3);
+        days.push({ date, focus, kind, s, p, r: Math.max(0, base - s - p) });
+      }
+      try { localStorage.setItem('gatefree.v1.planner', JSON.stringify({ schemaVersion: 1, data: { examISO, startISO: todayISO, hours, subjects, days } })); } catch {}
+      try {
+        const customs = document.getElementById('custom').value.split('\n').map((x) => x.trim()).filter(Boolean);
+        if (customs.length) localStorage.setItem('gf-planner-custom-v1', JSON.stringify({ schemaVersion: 1, data: customs }));
+      } catch {}
+      const sessions = (() => { try { const r = localStorage.getItem('gf-sessions-v1'); return r ? (JSON.parse(r).data ?? {}) : {}; } catch { return {}; } })();
+      const firstWeeks = days.slice(0, 21);
+      const doneCount = Object.values(sessions).filter(Boolean).length;
+      out.innerHTML = `<div class="card"><h3>Plan: ${totalDays} days (${todayISO} → ${examISO}) (${Math.round(days.reduce((a,d)=>a+d.s+d.p+d.r,0)/60)}h total)</h3>
+        <p class="meta">Showing first 21 days · ${doneCount} session(s) checked off · saved locally. Tick sessions as you finish — progress shows on the <a href="/dashboard/">dashboard</a>.</p>
+        <table><thead><tr><th>Done</th><th>Date</th><th>Focus</th><th>Kind</th><th>Study</th><th>Practice</th><th>Revise</th></tr></thead><tbody>
+        ${firstWeeks.map((d) => `<tr><td><input type="checkbox" data-sess="${d.date}" ${sessions[d.date] ? 'checked' : ''} aria-label="Mark ${d.date} done"/></td><td>${d.date}</td><td>${d.focus}</td><td>${d.kind}</td><td>${d.s}m</td><td>${d.p}m</td><td>${d.r}m</td></tr>`).join('')}
+        </tbody></table>
+        <p class="meta">Assumptions: weak subjects get more days; final weeks shift to revision/mocks; off-days are light. Not a marks prediction.</p></div>`;
+    } catch (ex) { err.textContent = ex.message; }
+  });
+  document.addEventListener('change', (e) => {
+    const el = e.target;
+    if (el instanceof HTMLInputElement && el.hasAttribute('data-sess')) {
+      try {
+        const r = localStorage.getItem('gf-sessions-v1');
+        const m = r ? (JSON.parse(r).data ?? {}) : {};
+        m[el.getAttribute('data-sess')] = el.checked;
+        localStorage.setItem('gf-sessions-v1', JSON.stringify({ schemaVersion: 1, data: m }));
+      } catch {}
+    }
+  });
+  try { document.getElementById('startDate').value = new Date().toISOString().slice(0, 10); } catch {}
+</script>

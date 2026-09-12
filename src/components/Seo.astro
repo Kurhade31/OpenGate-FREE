@@ -1,0 +1,28 @@
+---
+import { canonicalUrl, SITE_NAME } from '../lib/site';
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  noindex?: boolean;
+  updatedAt?: string;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+}
+const { title, description, canonicalPath, noindex = false, updatedAt, structuredData } = Astro.props as Props;
+const canonical = canonicalUrl(canonicalPath);
+const fullTitle = title.includes(SITE_NAME) ? title : `${title} — ${SITE_NAME}`;
+---
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex,nofollow" />}
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE_NAME} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+{updatedAt && <meta property="article:modified_time" content={updatedAt} />}
+{structuredData && <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />}

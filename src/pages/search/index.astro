@@ -1,0 +1,82 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Search" description="Search GATE 2027 papers, topics, guides, tools and practice questions." canonicalPath="/search/">
+  <section class="hero"><div class="wrap">
+    <h1>Search</h1>
+    <form id="sform" role="search" style="display:flex;gap:.5rem;max-width:560px" autocomplete="off">
+      <label class="meta" for="sq" style="position:absolute;left:-9999px">Search the platform</label>
+      <div style="position:relative;flex:1">
+        <input id="sq" name="q" type="search" placeholder="e.g. normalization, dates, OS…" autocomplete="off" aria-expanded="false" aria-controls="sugg" role="combobox" aria-autocomplete="list" />
+        <div id="sugg" role="listbox" aria-label="Suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;display:none;z-index:20"></div>
+      </div>
+      <button class="btn primary" type="submit">Search</button>
+    </form>
+    <p class="meta">Across papers, topics, guides, tools, questions and resources. Keyboard: Tab to results, Enter to open.</p>
+  </div></section>
+  <section class="section"><div class="wrap"><div id="sout"><div class="empty">Type a query to search papers, topics, guides and questions.</div></div></div></section>
+</Base>
+<script>
+  async function docs() {
+    const r = await fetch('/search-index.json');
+    return r.json();
+  }
+  function run(q, all) {
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return [];
+    return all
+      .map((d) => {
+        const hay = (d.title + ' ' + d.text + ' ' + d.kind).toLowerCase();
+        let score = 0;
+        for (const t of terms) { if (hay.includes(t)) score += t.length > 4 ? 2 : 1; if (d.title.toLowerCase().includes(t)) score += 2; }
+        return { d, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30)
+      .map((x) => x.d);
+  }
+  async function go() {
+    const q = new URLSearchParams(location.search).get('q') ?? '';
+    const inp = document.getElementById('sq');
+    if (inp instanceof HTMLInputElement) inp.value = q;
+    hideSugg();
+    if (!q) return;
+    const all = await docs();
+    const rows = run(q, all);
+    const out = document.getElementById('sout');
+    out.innerHTML = rows.length
+      ? `<p class="meta">${rows.length} result${rows.length === 1 ? '' : 's'} for “${q}”.</p><div class="search-results">${rows.map((d) => `<div class="card"><p><span class="pill">${d.kind}</span></p><h3 style="margin:.2rem 0"><a href="${d.url}">${d.title}</a></h3><p class="meta">${(d.text ?? '').slice(0, 140)}</p></div>`).join('')}</div>`
+      : `<div class="empty">No matches for “${q}”. Try: syllabus, dates, DBMS, OS, planner, calculator, normalization, mock.</div><p><a href="/syllabus/">Syllabus explorer</a> · <a href="/practice/test/">Test engine</a> · <a href="/resources/">Resources</a></p>`;
+  }
+  function hideSugg() { const s = document.getElementById('sugg'); if (s) { s.style.display = 'none'; document.getElementById('sq')?.setAttribute('aria-expanded', 'false'); } }
+  let cache = null;
+  document.getElementById('sq')?.addEventListener('input', async (e) => {
+    const v = e.target.value.trim();
+    const box = document.getElementById('sugg');
+    if (v.length < 2) { hideSugg(); return; }
+    if (!cache) cache = await docs();
+    const rows = run(v, cache).slice(0, 6);
+    if (!rows.length) { hideSugg(); return; }
+    box.innerHTML = rows.map((d, i) => `<div role="option" id="sg${i}" style="padding:.5rem .7rem;cursor:pointer;border-bottom:1px solid var(--line)"><strong>${d.title}</strong> <span class="meta">${d.kind}</span></div>`).join('');
+    box.style.display = 'block';
+    document.getElementById('sq').setAttribute('aria-expanded', 'true');
+    box.querySelectorAll('div[role="option"]').forEach((el, i) => {
+      el.addEventListener('mousedown', () => { location.href = rows[i].url; });
+      el.addEventListener('mouseenter', () => { el.style.background = '#eef2ff'; });
+      el.addEventListener('mouseleave', () => { el.style.background = ''; });
+    });
+  });
+  document.getElementById('sq')?.addEventListener('blur', () => setTimeout(hideSugg, 150));
+  document.getElementById('sq')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideSugg();
+  });
+  document.getElementById('sform')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const inp = document.getElementById('sq');
+    const v = inp instanceof HTMLInputElement ? inp.value : '';
+    history.replaceState(null, '', '/search/?q=' + encodeURIComponent(v));
+    go();
+  });
+  go();
+</script>

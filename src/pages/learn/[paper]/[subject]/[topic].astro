@@ -1,0 +1,128 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import topics from '../../../../../data/learn/topics.json';
+import original from '../../../../../data/questions/original.json';
+import pyq from '../../../../../data/questions/pyq.json';
+
+export async function getStaticPaths() {
+  return (topics as { paper: string; subjectSlug: string; slug: string }[]).map((t) => ({
+    params: { paper: t.paper.toLowerCase(), subject: t.subjectSlug, topic: t.slug },
+  }));
+}
+const { paper, subject, topic } = Astro.params;
+const list = topics as {
+  id: string; paper: string; subjectSlug: string; subject: string; slug: string; title: string;
+  description: string; difficulty: string; estimatedMinutes: number; subtopics: string[];
+  intro: string; concept: string; explanation: string; example: string; formulas: string[];
+  mistakes: string[]; revisionNotes: string[]; practiceQuestionIds: string[]; pyqIds: string[]; nextTopicId?: string;
+}[];
+const t = list.find((x) => x.paper.toLowerCase() === (paper ?? '').toLowerCase() && x.subjectSlug === subject && x.slug === topic);
+if (!t) throw new Error(`Unknown topic: ${paper}/${subject}/${topic}`);
+const allQ = [...(original as unknown[]), ...(pyq as unknown[])] as {
+  id: string; paper: string; subject: string; topic: string; questionType: string; question: string;
+  options: string[]; answer: string; explanation: string; marks: number; difficulty: string; type: string;
+  sourceLabel?: string; year?: number;
+}[];
+const byId = new Map(allQ.map((q) => [q.id, q]));
+type QRow = {
+  id: string; paper: string; subject: string; topic: string; questionType: string; question: string;
+  options: string[]; answer: string; explanation: string; marks: number; type: string;
+  sourceLabel?: string; year?: number;
+};
+const practiceList: QRow[] = [];
+for (const id of t.practiceQuestionIds) { const hit = byId.get(id); if (hit) practiceList.push(hit); }
+const pyqList: QRow[] = [];
+for (const id of t.pyqIds) { const hit = byId.get(id); if (hit) pyqList.push(hit); }
+const next = list.find((x) => x.id === t.nextTopicId);
+---
+<Base title={`${t.title} — ${t.paper} Learn`} description={`${t.description} Structured lesson with example, formulas, mistakes, practice and PYQs.`} canonicalPath={`/learn/${t.paper.toLowerCase()}/${t.subjectSlug}/${t.slug}/`}>
+  <section class="hero"><div class="wrap">
+    <p class="kicker">{t.paper} · {t.subject} · {t.estimatedMinutes} min · {t.difficulty}</p>
+    <h1>{t.title}</h1>
+    <p class="lead">{t.description}</p>
+    <p class="meta">Subtopics: {t.subtopics.join(' · ')}</p>
+    <div class="btn-row">
+      <button class="btn primary small" id="tDone">Mark as completed</button>
+      <button class="btn ghost small" id="tRev">+ Add to revision</button>
+      <button class="btn ghost small" id="tSave">♡ Save topic</button>
+      <a class="btn ghost small" href={`/practice/test/?paper=${t.paper}&topic=${encodeURIComponent(t.slug)}`}>Practice this topic →</a>
+    </div>
+    <p class="meta" id="tState" role="status"></p>
+  </div></section>
+
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h2>Introduction</h2><p>{t.intro}</p><h2>Core concept</h2><p>{t.concept}</p><h2>Detailed explanation</h2><p>{t.explanation}</p></div>
+    <div class="card"><h2>Worked example</h2><p>{t.example}</p><h2>Formulas / key points</h2><ul>{t.formulas.map((f) => (<li><code>{f}</code></li>))}</ul><h2>Common mistakes</h2><ul>{t.mistakes.map((m) => (<li>{m}</li>))}</ul></div>
+  </div></section>
+
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h2>Quick revision</h2><ul>{t.revisionNotes.map((r) => (<li>{r}</li>))}</ul>
+      <label class="meta">My note<textarea id="tNote" rows="2" placeholder="One line in your words…"></textarea></label>
+    </div>
+    <div class="card"><h2>Next</h2>{next ? <p><a href={`/learn/${next.paper.toLowerCase()}/${next.subjectSlug}/${next.slug}/`}>{next.title} →</a></p> : <p class="meta">End of this mini-track. <a href={`/learn/${t.paper.toLowerCase()}/`}>Back to {t.paper} map</a>.</p>}<p><a href={`/syllabus/${t.paper.toLowerCase()}/`}>Syllabus checklist</a> · <a href="/revision/">Revision center</a></p></div>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <h2>Practice ({practiceList.length})</h2>
+    <div class="grid">
+      {practiceList.map((q) => (
+        <div class="card">
+          <p><span class="pill">{q.questionType}</span> <span class="pill green">{q.marks} mark</span> <span class="pill amber">{q.type === 'pyq-reference' ? `PYQ ${q.year ?? ''}` : (q.sourceLabel ?? 'Original')}</span></p>
+          <p style="color:var(--ink);font-weight:600">{q.question}</p>
+          {q.options?.length ? <ul>{q.options.map((o) => (<li>{o}</li>))}</ul> : <p class="meta">NAT — enter a number.</p>}
+          <details><summary style="cursor:pointer">Answer + explanation</summary><p><strong>{q.answer}</strong><br />{q.explanation}</p></details>
+          <p><a class="btn ghost small" href={`/practice/test/?q=${q.id}`}>Attempt in test engine →</a> <button class="btn ghost small" data-bq={q.id}>Bookmark</button> <button class="btn ghost small" data-mq={q.id} data-sub={q.subject} data-top={q.topic} data-qq={q.question}>+ Mistake</button></p>
+        </div>
+      ))}
+    </div>
+    <h2 style="margin-top:1.5rem">PYQs ({pyqList.length})</h2>
+    <div class="grid">
+      {pyqList.map((q) => (
+        <div class="card">
+          <p><span class="pill">PYQ {q.year ?? ''}</span> <span class="pill green">{q.marks} mark</span></p>
+          <p style="color:var(--ink);font-weight:600">{q.question}</p>
+          <details><summary style="cursor:pointer">Answer + community explanation</summary><p><strong>{q.answer}</strong><br />{q.explanation}</p><p class="meta">Source: {q.sourceLabel ?? 'Official paper archive'} — verify year/paper in the official PDF.</p></details>
+          <p><a class="btn ghost small" href={`/pyq/${q.id}/`}>Open PYQ →</a></p>
+        </div>
+      ))}
+    </div>
+  </div></section>
+</Base>
+<script define:vars={{ tid: t.id }}>
+  const DONE='gf-topics-v1', REV='gf-revision-topics-v1', SAVED='gf-saved-topics-v1', NOTES='gf-notes-v1';
+  const read=(k,f)=>{try{const r=localStorage.getItem('gf-'+k);if(!r)return f;const w=JSON.parse(r);return w.data??f;}catch{return f;}};
+  const write=(k,d)=>{try{localStorage.setItem('gf-'+k,JSON.stringify({schemaVersion:1,data:d}));}catch{}};
+  const act=(a)=>{try{const arr=read('activity-v1',[]);arr.unshift({at:new Date().toISOString(),...a});write('activity-v1',arr.slice(0,200));}catch{}};
+  function paint(){
+    const done=read(DONE,{}), rev=read(REV,[]), saved=read(SAVED,[]);
+    const s=document.getElementById('tState');
+    const bits=[];
+    if(done[tid]==='completed')bits.push('Completed ✓');
+    if(rev.includes(tid))bits.push('In revision');
+    if(saved.includes(tid))bits.push('Saved');
+    if(s)s.textContent=bits.length?bits.join(' · '):'Not started';
+    const n=document.getElementById('tNote');
+    if(n instanceof HTMLTextAreaElement && document.activeElement!==n)n.value=read(NOTES,{})[tid]??'';
+  }
+  document.getElementById('tDone')?.addEventListener('click',()=>{const d=read(DONE,{});d[tid]=d[tid]==='completed'?'in-progress':'completed';write(DONE,d);act({kind:'topic',id:tid,status:d[tid]});paint();});
+  document.getElementById('tRev')?.addEventListener('click',()=>{const a=read(REV,[]);const i=a.indexOf(tid);if(i>=0)a.splice(i,1);else a.push(tid);write(REV,a);paint();});
+  document.getElementById('tSave')?.addEventListener('click',()=>{const a=read(SAVED,[]);const i=a.indexOf(tid);if(i>=0)a.splice(i,1);else a.push(tid);write(SAVED,a);paint();});
+  document.getElementById('tNote')?.addEventListener('change',(e)=>{const m=read(NOTES,{});m[tid]=e.target.value;write(NOTES,m);});
+  document.addEventListener('click',(e)=>{
+    const el=e.target;
+    if(!(el instanceof HTMLElement))return;
+    if(el.hasAttribute('data-bq')){
+      const id=el.getAttribute('data-bq');
+      const a=read('bookmarks-q-v1',[]);
+      if(!a.includes(id)){a.push(id);write('bookmarks-q-v1',a);}
+      el.textContent='Bookmarked ✓';
+    }
+    if(el.hasAttribute('data-mq')){
+      const arr=read('mistakes-v2',[]);
+      arr.unshift({id:'m'+Date.now().toString(36),questionId:el.getAttribute('data-mq'),question:el.getAttribute('data-qq')??'',subject:el.getAttribute('data-sub')??'',topic:el.getAttribute('data-top')??'',kind:'concept-gap',why:'',fix:'',note:'',difficulty:'medium',date:new Date().toISOString().slice(0,10),reviewed:false});
+      write('mistakes-v2',arr.slice(0,500));
+      el.textContent='Added to mistakes ✓';
+    }
+  });
+  paint();
+</script>

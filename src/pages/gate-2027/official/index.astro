@@ -1,0 +1,21 @@
+---
+import Base from '../../../layouts/Base.astro';
+import exam from '../../../../data/gate/2027/exam.json';
+---
+<Base title="GATE 2027 official information" description="Canonical GATE 2027 official links, organising institute, and what to verify in the brochure. All facts sourced to gate2027.iitm.ac.in." canonicalPath="/gate-2027/official/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Source type: official</p>
+    <h1>GATE 2027 official information</h1>
+    <p class="lead">GATE 2027 is operated by IIT Madras. Use this page as the canonical link-list; always verify dates, eligibility and rules on the official site or brochure before acting.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Canonical links</h3><ul>
+      <li><a href="https://gate2027.iitm.ac.in/" rel="noopener">Official GATE 2027 website</a></li>
+      <li><a href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">Exam papers &amp; syllabus (revised)</a></li>
+      <li><a href="https://gate2027.iitm.ac.in/important_dates" rel="noopener">Important dates</a></li>
+      <li><a href="https://gate2027.iitm.ac.in/notifications" rel="noopener">Notifications</a></li>
+    </ul></div>
+    <div class="card"><h3>What this site stores</h3><p>Official dates and paper lists are stored as versioned data (<code>data/gate/2027/</code>) with <code>lastVerified: {exam.lastVerified}</code>. Changes go through human review — automation never silently rewrites official facts.</p><p><a href="/changelog/">Changelog</a> · <a href="/gate-2027/important-dates/">Dates</a></p></div>
+  </div></section>
+  <section class="section"><div class="wrap"><div class="source-box">Source: <a href="https://gate2027.iitm.ac.in/" rel="noopener">gate2027.iitm.ac.in</a> · Last verified {exam.lastVerified} · Organising institute: {exam.organizingInstitute}.</div></div></section>
+</Base>

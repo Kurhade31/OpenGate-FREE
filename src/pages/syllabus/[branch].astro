@@ -1,0 +1,144 @@
+---
+import Base from '../../layouts/Base.astro';
+import cs from '../../../data/subjects/cs.json';
+import ec from '../../../data/subjects/ec.json';
+import ee from '../../../data/subjects/ee.json';
+import me from '../../../data/subjects/me.json';
+import ce from '../../../data/subjects/ce.json';
+import da from '../../../data/subjects/da.json';
+import topics from '../../../data/learn/topics.json';
+
+export async function getStaticPaths() {
+  return ['cs','ec','ee','me','ce','da'].map((branch) => ({ params: { branch } }));
+}
+const { branch } = Astro.params;
+const groups: Record<string, { code: string; name: string; subjects: typeof cs }> = {
+  cs: { code: 'CS', name: 'Computer Science & IT', subjects: cs },
+  ec: { code: 'EC', name: 'Electronics & Communication', subjects: ec },
+  ee: { code: 'EE', name: 'Electrical Engineering', subjects: ee },
+  me: { code: 'ME', name: 'Mechanical Engineering', subjects: me },
+  ce: { code: 'CE', name: 'Civil Engineering', subjects: ce },
+  da: { code: 'DA', name: 'Data Science & AI', subjects: da },
+};
+const entry = groups[(branch ?? '').toLowerCase()];
+if (!entry) throw new Error(`Unknown branch: ${branch}`);
+const topicByKey: Record<string, { id: string; slug: string }> = {};
+for (const t of topics as { id: string; paper: string; subjectSlug: string; slug: string }[]) {
+  if (t.paper === entry.code) topicByKey[`${t.subjectSlug}::${t.slug}`] = { id: t.id, slug: t.slug };
+}
+---
+<Base title={`${entry.code} syllabus explorer`} description={`${entry.code} syllabus by subject and topic with completion tracking, notes, and links to learning and practice.`} canonicalPath={`/syllabus/${entry.code.toLowerCase()}/`}>
+  <section class="hero"><div class="wrap">
+    <p class="kicker">{entry.code} · syllabus explorer</p>
+    <h1>{entry.code} syllabus</h1>
+    <p class="lead">{entry.name}. Expand a subject to see topics and subtopics from the topic guides.</p>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;max-width:640px">
+      <label>Search topics<input id="syllQ" type="search" placeholder="e.g. scheduling, normal…" /></label>
+      <label>Show<select id="syllF"><option value="">All</option><option value="todo">Not started</option><option value="done">Completed</option><option value="important">Important</option><option value="revision">For revision</option></select></label>
+    </div>
+    <p class="meta" id="syllProgress" role="status"></p>
+  </div></section>
+  <section class="section"><div class="wrap grid" id="syllList">
+    {entry.subjects.map((s) => (
+      <details class="card" data-subject={s.name} open>
+        <summary style="cursor:pointer;font-weight:800">{s.name} <span class="meta">· {s.topics.length} topics</span></summary>
+        <p class="meta">{s.description}</p>
+        <div class="grid">
+          {s.topics.map((t) => {
+            const key = `${s.slug}::${t}`;
+            const detail = topicByKey[key];
+            const tid = detail?.id ?? `${entry.code}-${s.slug}-${t}`;
+            const learnUrl = detail ? `/learn/${entry.code.toLowerCase()}/${s.slug}/${detail.slug}/` : `/learn/${entry.code.toLowerCase()}/`;
+            return (
+              <div class="card" data-topic-row={tid} data-topic-name={t}>
+                <p style="margin:0;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                  <input type="checkbox" data-done={tid} aria-label={`Mark ${t} completed`} /> <strong>{t}</strong>
+                  <button class="btn ghost small" data-imp={tid} aria-pressed="false">☆ Important</button>
+                  <button class="btn ghost small" data-rev={tid} aria-pressed="false">+ Revision</button>
+                </p>
+                <p style="margin:.4rem 0"><a href={learnUrl}>Learn →</a> · <a href={`/practice/test/?paper=${entry.code}&subject=${encodeURIComponent(s.name)}`}>Practice →</a> · <a href={`/pyq/?paper=${entry.code}`}>PYQ →</a></p>
+                <label class="meta">Note<textarea rows="1" data-note={tid} placeholder="One-line note…"></textarea></label>
+              </div>
+            );
+          })}
+        </div>
+      </details>
+    ))}
+  </div></section>
+</Base>
+<script>
+  const DONE = 'gf-topics-v1', IMP = 'gf-important-v1', REV = 'gf-revision-topics-v1', NOTES = 'gf-notes-v1';
+  const read = (k, f) => { try { const r = localStorage.getItem('gf-' + k); if (!r) return f; const w = JSON.parse(r); return w.data ?? f; } catch { return f; } };
+  const write = (k, d) => { try { localStorage.setItem('gf-' + k, JSON.stringify({ schemaVersion: 1, data: d })); } catch {} };
+  function paint() {
+    const done = read(DONE, {}), imp = read(IMP, []), rev = read(REV, []), notes = read(NOTES, {});
+    let total = 0, doneN = 0;
+    document.querySelectorAll('[data-topic-row]').forEach((row) => {
+      const id = row.getAttribute('data-topic-row');
+      total++;
+      const isDone = done[id] === 'completed';
+      if (isDone) doneN++;
+      const cb = row.querySelector('[data-done]');
+      if (cb instanceof HTMLInputElement) cb.checked = isDone;
+      const ib = row.querySelector('[data-imp]');
+      if (ib instanceof HTMLElement) { const on = imp.includes(id); ib.textContent = (on ? '★' : '☆') + ' Important'; ib.setAttribute('aria-pressed', String(on)); }
+      const rb = row.querySelector('[data-rev]');
+      if (rb instanceof HTMLElement) { const on = rev.includes(id); rb.textContent = (on ? '✓' : '+') + ' Revision'; rb.setAttribute('aria-pressed', String(on)); }
+      const nt = row.querySelector('[data-note]');
+      if (nt instanceof HTMLTextAreaElement && document.activeElement !== nt) nt.value = notes[id] ?? '';
+    });
+    const p = document.getElementById('syllProgress');
+    if (p) p.textContent = total ? `Progress: ${doneN}/${total} topics completed (${Math.round((doneN / total) * 100)}%)` : '';
+  }
+  function toggleArr(k, id) {
+    const a = read(k, []);
+    const i = a.indexOf(id);
+    if (i >= 0) a.splice(i, 1); else a.push(id);
+    write(k, a);
+  }
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-done')) {
+      const id = t.getAttribute('data-done');
+      const done = read(DONE, {});
+      done[id] = t.checked ? 'completed' : 'not-started';
+      write(DONE, done);
+      try {
+        const act = read('activity-v1', []); act.unshift({ at: new Date().toISOString(), kind: 'topic', id, status: done[id] });
+        write('activity-v1', act.slice(0, 200));
+      } catch {}
+      paint();
+    }
+    if (t.hasAttribute('data-note')) {
+      const id = t.getAttribute('data-note');
+      const notes = read(NOTES, {});
+      notes[id] = t.value;
+      write(NOTES, notes);
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-imp')) { toggleArr(IMP, t.getAttribute('data-imp')); paint(); }
+    if (t.hasAttribute('data-rev')) { toggleArr(REV, t.getAttribute('data-rev')); paint(); }
+  });
+  function filter() {
+    const q = (document.getElementById('syllQ').value ?? '').toLowerCase();
+    const f = document.getElementById('syllF').value;
+    const done = read(DONE, {}), imp = read(IMP, []), rev = read(REV, []);
+    document.querySelectorAll('[data-topic-row]').forEach((row) => {
+      const name = (row.getAttribute('data-topic-name') ?? '').toLowerCase();
+      const id = row.getAttribute('data-topic-row');
+      let show = !q || name.includes(q);
+      if (f === 'todo') show = show && done[id] !== 'completed';
+      if (f === 'done') show = show && done[id] === 'completed';
+      if (f === 'important') show = show && imp.includes(id);
+      if (f === 'revision') show = show && rev.includes(id);
+      row.style.display = show ? '' : 'none';
+    });
+  }
+  document.getElementById('syllQ')?.addEventListener('input', filter);
+  document.getElementById('syllF')?.addEventListener('change', filter);
+  paint();
+</script>

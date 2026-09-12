@@ -1,0 +1,34 @@
+---
+import Base from '../../../layouts/Base.astro';
+import formulas from '../../../../data/formulas.json';
+---
+<Base title="Formula reference" description="Searchable GATE formula sheet: OS, networks, thermo, signals, ML, DBMS. Save items for revision." canonicalPath="/tools/formula-reference/">
+  <section class="hero"><div class="wrap"><p class="kicker">Reference · {(formulas as unknown[]).length} formulas</p><h1>Formula reference</h1><p class="lead">Search and save. Saved items appear in the <a href="/revision/">revision center</a>.</p>
+  <input id="fQ" type="search" placeholder="Search formulas…" style="max-width:480px" /></div></section>
+  <section class="section"><div class="wrap grid cols-2" id="fList">
+    {(formulas as { id: string; subject: string; topic: string; title: string; formula: string; note: string }[]).map((f) => (
+      <div class="card" data-f={`${f.title} ${f.subject} ${f.topic} ${f.formula}`.toLowerCase()}>
+        <h3 style="margin:0">{f.title}</h3>
+        <p><code>{f.formula}</code></p>
+        <p class="meta">{f.subject} · {f.topic} · {f.note}</p>
+        <button class="btn ghost small" data-save={f.id}>Save</button>
+      </div>
+    ))}
+  </div></section>
+</Base>
+<script>
+  const read = (f) => { try { const r = localStorage.getItem('gf-saved-formulas-v1'); if (!r) return f; return JSON.parse(r).data ?? f; } catch { return f; } };
+  document.getElementById('fQ')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('[data-f]').forEach((el) => { el.style.display = el.getAttribute('data-f').includes(q) ? '' : 'none'; });
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement) || !t.hasAttribute('data-save')) return;
+    const a = read([]);
+    const id = t.getAttribute('data-save');
+    if (!a.includes(id)) a.push(id);
+    try { localStorage.setItem('gf-saved-formulas-v1', JSON.stringify({ schemaVersion: 1, data: a })); } catch {}
+    t.textContent = 'Saved ✓';
+  });
+</script>

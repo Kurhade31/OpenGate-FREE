@@ -1,0 +1,18 @@
+---
+import Base from '../../../layouts/Base.astro';
+import dates from '../../../../data/gate/2027/dates.json';
+---
+<Base title="GATE 2027 important dates" description="GATE 2027 registration, rectification, exam windows and result date with official sources. Verify on gate2027.iitm.ac.in — dates may change." canonicalPath="/gate-2027/important-dates/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Source type: official · verified {dates.verifiedAt}</p>
+    <h1>GATE 2027 important dates</h1>
+    <p class="lead">Versioned official-source data. Always re-check the official dates page close to deadlines — dates are liable to change.</p>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <table><thead><tr><th>Event</th><th>Date / window</th><th>Status</th></tr></thead><tbody>
+      {dates.dates.map((d) => (<tr><td>{d.event}</td><td>{d.date}</td><td>{d.status === 'official' ? <span class="pill green">official</span> : <span class="pill amber">not announced yet</span>}</td></tr>))}
+    </tbody></table>
+    <div class="source-box" style="margin-top:1rem">Source: <a href={dates.source} rel="noopener">{dates.source}</a> · Verified {dates.verifiedAt} · {dates.disclaimer} <a href="/report-error/">Report an error</a>.</div>
+    <p style="margin-top:1rem"><a class="btn ghost" href="/tools/study-planner/">Plan backwards from the exam date →</a></p>
+  </div></section>
+</Base>

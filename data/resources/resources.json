@@ -1,0 +1,91 @@
+[
+  {
+    "id": "official-gate2027",
+    "title": "GATE 2027 official website (IIT Madras)",
+    "provider": "IIT Madras / GATE",
+    "url": "https://gate2027.iitm.ac.in/",
+    "type": "Official",
+    "cost": "Free",
+    "language": "English",
+    "why": "Canonical source for dates, eligibility, application, syllabus and notifications. Check before trusting any secondary source.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  },
+  {
+    "id": "official-syllabus",
+    "title": "GATE 2027 papers & revised syllabi",
+    "provider": "IIT Madras / GATE",
+    "url": "https://gate2027.iitm.ac.in/exam_papers_and_syllabus",
+    "paper": "ALL",
+    "type": "Official",
+    "cost": "Free",
+    "language": "English",
+    "why": "Download the edition-specific syllabus PDF for your paper. GATE 2027 syllabi were revised — do not use old PDFs.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  },
+  {
+    "id": "nptel",
+    "title": "NPTEL / SWAYAM free engineering courses",
+    "provider": "NPTEL (IITs/IISc)",
+    "url": "https://nptel.ac.in/",
+    "type": "Lecture",
+    "cost": "Free",
+    "language": "English",
+    "why": "Start with 1 primary lecture series per subject. NPTEL courses map well to GATE fundamentals and are free to watch.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  },
+  {
+    "id": "nptel-cs-os",
+    "title": "NPTEL Operating Systems (example: start here for CS OS)",
+    "provider": "NPTEL",
+    "url": "https://nptel.ac.in/courses/106/105/106105214/",
+    "paper": "CS",
+    "subject": "Operating Systems",
+    "type": "Lecture",
+    "cost": "Free",
+    "language": "English",
+    "why": "Useful for beginners for OS concepts; pair with practice on this site. Verify the link still resolves before exams.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  },
+  {
+    "id": "geeksforgeeks-cs",
+    "title": "GeeksforGeks GATE CS preparation",
+    "provider": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/gate-cs-notes-gq/",
+    "paper": "CS",
+    "type": "Reference",
+    "cost": "Free",
+    "language": "English",
+    "why": "Quick reference and topic-wise notes for revision. Cross-check tricky claims with standard books.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  },
+  {
+    "id": "standard-books-note",
+    "title": "Standard textbooks via your college library",
+    "provider": "College library",
+    "url": "https://ndl.iitkgp.ac.in/",
+    "type": "Book",
+    "cost": "Free",
+    "language": "English",
+    "why": "One standard book per subject beats ten PDFs. Use the National Digital Library or your college library for legal free access.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  },
+  {
+    "id": "pyq-official",
+    "title": "Official GATE question papers (previous years)",
+    "provider": "GATE / IITs",
+    "url": "https://gate2027.iitm.ac.in/",
+    "paper": "ALL",
+    "type": "Practice",
+    "cost": "Free",
+    "language": "English",
+    "why": "Prefer official papers when available. This site links to official sources rather than republishing papers with unclear rights.",
+    "lastChecked": "2026-09-11",
+    "status": "active"
+  }
+]

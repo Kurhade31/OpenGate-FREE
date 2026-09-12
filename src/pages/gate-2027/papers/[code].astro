@@ -1,0 +1,40 @@
+---
+import Base from '../../../layouts/Base.astro';
+import papers from '../../../../data/gate/2027/papers.json';
+
+export async function getStaticPaths() {
+  return papers.map((p) => ({ params: { code: p.code.toLowerCase() } }));
+}
+
+const { code } = Astro.params;
+const paper = papers.find((p) => p.code.toLowerCase() === (code ?? '').toLowerCase());
+if (!paper) throw new Error(`Unknown paper: ${code}`);
+const learnLinks: Record<string, string> = { CS: '/learn/cs/', EC: '/learn/ec/', EE: '/learn/ee/', ME: '/learn/me/', CE: '/learn/ce/', DA: '/learn/da/' };
+const learn = learnLinks[paper.code];
+---
+<Base
+  title={`${paper.code} — ${paper.name} (GATE 2027)`}
+  description={`${paper.code} (${paper.name}) GATE 2027 overview: syllabus, topic map, practice and resources. Official syllabus linked.`}
+  canonicalPath={`/gate-2027/papers/${paper.code.toLowerCase()}/`}
+>
+  <section class="hero"><div class="wrap">
+    <p class="kicker">{paper.code} · GATE 2027</p>
+    <h1>{paper.code} — {paper.name}</h1>
+    <p class="lead">Paper overview with syllabus, preparation path and practice entry points. {paper.code === 'RA' ? 'New paper in GATE 2027 — use only the 2027 syllabus PDF.' : 'Use the 2027 revised syllabus PDF for this paper.'}</p>
+    <div class="btn-row">
+      <a class="btn primary" href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">Official syllabus PDF</a>
+      {learn && <a class="btn ghost" href={learn}>Topic map</a>}
+      <a class="btn ghost" href={`/practice/?paper=${paper.code}`}>Practice {paper.code}</a>
+    </div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>How to prepare {paper.code}</h3><ol><li>Download the {paper.code} 2027 syllabus PDF.</li><li>Split into General Aptitude + core subjects.</li><li>Work topic-by-topic: concept → example → practice → revision.</li><li>Solve official PYQs by topic; log mistakes.</li><li>Take timed mocks in the last 6–8 weeks.</li></ol></div>
+    <div class="card"><h3>Next steps</h3><ul>
+      {learn ? <li><a href={learn}>{paper.code} topic map</a></li> : <li>Topic map for {paper.code} is planned — <a href="/contribute/">contribute it</a>.</li>}
+      <li><a href={`/pyq/?paper=${paper.code}`}>PYQ navigation ({paper.code})</a></li>
+      <li><a href="/resources/">Free resources</a></li>
+      <li><a href="/tools/study-planner/">Study planner</a></li>
+    </ul></div>
+  </div></section>
+  <section class="section"><div class="wrap"><div class="source-box">Source: <a href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">official papers &amp; syllabus</a> · Last verified 2026-09-11.</div></div></section>
+</Base>

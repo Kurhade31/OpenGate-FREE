@@ -1,0 +1,17 @@
+{
+  "exam": "GATE",
+  "edition": "2027",
+  "organizingInstitute": "IIT Madras",
+  "sourceUrl": "https://gate2027.iitm.ac.in/",
+  "lastVerified": "2026-09-11",
+  "importantDates": {
+    "registrationOpen": "2026-09-02",
+    "regularRegistrationClose": "2026-09-27",
+    "extendedRegistrationClose": "2026-10-05",
+    "rectificationWindow": "2026-10-14 to 2026-10-21",
+    "cityAllotment": "2027-01-04",
+    "examWindows": ["2027-02-06 to 2027-02-07", "2027-02-13 to 2027-02-14", "2027-02-20 to 2027-02-21"],
+    "resultDate": "2027-03-19"
+  },
+  "notes": "Dates are versioned official-source data and may change. Always verify on the official GATE 2027 website before acting."
+}

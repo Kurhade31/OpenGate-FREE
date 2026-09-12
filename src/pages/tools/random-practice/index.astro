@@ -1,0 +1,40 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Random practice" description="One-click random GATE question drill. Attempt, reveal, bookmark, next." canonicalPath="/tools/random-practice/">
+  <section class="hero"><div class="wrap"><p class="kicker">Drill</p><h1>Random practice</h1><p class="lead">One random question at a time from the full bank. For filtered sets use the <a href="/practice/test/">test engine</a>.</p></div></section>
+  <section class="section"><div class="wrap"><div class="card"><div id="rBox"><div class="empty">Loading bank…</div></div><div class="btn-row" style="margin-top:.8rem"><button class="btn primary" id="rNext">Next random →</button><a class="btn ghost" href="/practice/test/">Custom test →</a></div></div></div></section>
+</Base>
+<script>
+  let bank = [];
+  async function load() {
+    const r = await fetch('/practice-index.json');
+    bank = await r.json();
+    next();
+  }
+  function next() {
+    const q = bank[Math.floor(Math.random() * bank.length)];
+    if (!q) return;
+    const box = document.getElementById('rBox');
+    box.innerHTML = `<p><span class="pill">${q.paper}</span> <span class="pill green">${q.difficulty}</span> <span class="pill amber">${q.questionType}</span></p>
+      <p style="font-weight:700">${q.question}</p>
+      ${q.options?.length ? q.options.map((o) => `<p><button class="btn ghost small" data-o="${o.replace(/"/g,'&quot;')}">${o}</button></p>`).join('') : `<div style="display:flex;gap:.5rem"><input id="rNat" placeholder="number"/><button class="btn primary small" id="rCheck">Check</button></div>`}
+      <div class="meta" id="rExp" hidden><strong>${q.questionType === 'MSQ' ? (q.correctOptions ?? [q.answer]).join(' + ') : q.answer}</strong><br/>${q.explanation}</div>
+      <p><button class="btn ghost small" id="rRev">Reveal</button> <a class="btn ghost small" href="/practice/test/?q=${q.id}">Timed →</a></p>`;
+    box.querySelectorAll('[data-o]').forEach((b) => b.addEventListener('click', () => {
+      const ok = b.getAttribute('data-o').trim().toLowerCase() === String(q.answer).trim().toLowerCase();
+      b.style.borderColor = ok ? 'green' : 'red';
+      document.getElementById('rExp').hidden = false;
+    }));
+    document.getElementById('rRev')?.addEventListener('click', () => { const e = document.getElementById('rExp'); e.hidden = !e.hidden; });
+    document.getElementById('rCheck')?.addEventListener('click', () => {
+      const v = document.getElementById('rNat').value.trim();
+      const tol = q.tolerance ?? 0;
+      const ok = Math.abs(Number(v) - Number(q.answer)) <= tol + 1e-9;
+      document.getElementById('rNat').style.borderColor = ok ? 'green' : 'red';
+      document.getElementById('rExp').hidden = false;
+    });
+  }
+  document.getElementById('rNext').addEventListener('click', next);
+  load();
+</script>

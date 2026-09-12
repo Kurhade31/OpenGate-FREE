@@ -1,0 +1,31 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Percentage calculator" description="Percent of, percent change and successive discounts. With validation and steps." canonicalPath="/tools/percentage/">
+  <section class="hero"><div class="wrap"><p class="kicker">Tool</p><h1>Percentage calculator</h1></div></section>
+  <section class="section"><div class="wrap grid cols-3">
+    <div class="card"><h3>X% of Y</h3><div class="form-grid"><label>X<input id="aX" type="number" value="20" /></label><label>Y<input id="aY" type="number" value="150" /></label><button class="btn primary small" id="aGo">Calculate</button><p role="status" id="aOut">—</p></div></div>
+    <div class="card"><h3>Change: old → new</h3><div class="form-grid"><label>Old<input id="bO" type="number" value="80" /></label><label>New<input id="bN" type="number" value="100" /></label><button class="btn primary small" id="bGo">Calculate</button><p role="status" id="bOut">—</p></div></div>
+    <div class="card"><h3>Successive discounts</h3><div class="form-grid"><label>Discounts % (comma)<input id="cD" value="10, 20" /></label><button class="btn primary small" id="cGo">Calculate</button><p role="status" id="cOut">—</p></div></div>
+  </div></section>
+</Base>
+<script>
+  document.getElementById('aGo').addEventListener('click', () => {
+    const x = Number(document.getElementById('aX').value), y = Number(document.getElementById('aY').value);
+    document.getElementById('aOut').textContent = (Number.isFinite(x) && Number.isFinite(y)) ? `${(x/100)*y}` : 'Enter valid numbers.';
+  });
+  document.getElementById('bGo').addEventListener('click', () => {
+    const o = Number(document.getElementById('bO').value), n = Number(document.getElementById('bN').value);
+    if (!Number.isFinite(o) || !Number.isFinite(n) || o === 0) { document.getElementById('bOut').textContent = 'Enter valid numbers (old ≠ 0).'; return; }
+    document.getElementById('bOut').textContent = `${Math.round(((n-o)/Math.abs(o))*100*100)/100}% change`;
+  });
+  document.getElementById('cGo').addEventListener('click', () => {
+    try {
+      const ds = document.getElementById('cD').value.split(',').map((s) => Number(s.trim()));
+      if (!ds.length || ds.some((d) => !Number.isFinite(d) || d < 0 || d > 100)) throw new Error('Use 0–100, comma separated.');
+      let f = 1;
+      for (const d of ds) f *= (1 - d/100);
+      document.getElementById('cOut').textContent = `Equivalent: ${Math.round((1-f)*100*100)/100}% off (pay ${Math.round(f*100*100)/100}%)`;
+    } catch (e) { document.getElementById('cOut').textContent = e.message; }
+  });
+</script>

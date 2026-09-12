@@ -1,0 +1,94 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Mistake notebook" description="Add any question with subject, topic, reason, correct concept and notes. Filter, reattempt, mark understood. Local-first." canonicalPath="/tools/mistake-tracker/">
+  <section class="hero"><div class="wrap"><p class="kicker">Notebook · local-first</p><h1>Mistake notebook</h1><p class="lead">Scores tell what happened; this tells why. Every entry supports reattempt, understood flag and filters. Old simple entries are preserved.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><div class="form-grid">
+      <label>Question<input id="mq" placeholder="Paste question or topic" /></label>
+      <label>Subject<input id="ms" placeholder="e.g. Operating Systems" /></label>
+      <label>Topic<input id="mt" placeholder="e.g. cpu-scheduling" /></label>
+      <label>Why wrong<select id="mk"><option value="concept-gap">Concept gap</option><option value="formula-error">Formula error</option><option value="calculation-error">Calculation error</option><option value="misread">Question misread</option><option value="method-error">Method selection error</option><option value="careless">Careless error</option><option value="time-pressure">Time pressure</option><option value="guessing">Guessing</option><option value="memory-failure">Memory failure</option><option value="prerequisite-gap">Prerequisite gap</option></select></label>
+      <label>Correct concept<textarea id="mc" rows="2" placeholder="One-line fix"></textarea></label>
+      <label>Personal note<textarea id="mn" rows="2" placeholder="What will you do differently?"></textarea></label>
+      <label>Difficulty<select id="md"><option>easy</option><option selected>medium</option><option>hard</option></select></label>
+      <button class="btn primary" id="madd">Add to notebook</button>
+      <p class="meta" id="mErr" role="alert"></p>
+    </div></div>
+    <div class="card"><h3>Notebook (<span id="mN">0</span>)</h3>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:none">
+        <label>Subject<input id="fS" placeholder="filter" /></label>
+        <label>Status<select id="fR"><option value="">All</option><option value="open">Not reviewed</option><option value="done">Reviewed</option></select></label>
+        <label>Sort<select id="fO"><option value="new">Recently added</option><option value="hard">Difficult first</option></select></label>
+      </div>
+      <div id="mlist" style="margin-top:.6rem"></div>
+      <p style="margin-top:.8rem"><button class="btn ghost small" id="mexport">Export JSON</button> <button class="btn ghost small" id="mclear">Delete reviewed</button></p>
+    </div>
+  </div></section>
+</Base>
+<script>
+  const KEY = 'gf-mistakes-v2';
+  const read = (f) => { try { const r = localStorage.getItem(KEY); if (!r) return f; return JSON.parse(r).data ?? f; } catch { return f; } };
+  const write = (d) => { try { localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, data: d })); } catch {} };
+  // migrate legacy simple log once
+  try {
+    const legacy = localStorage.getItem('gatefree.v1.mistakes');
+    if (legacy && !localStorage.getItem(KEY + '-migrated')) {
+      const w = JSON.parse(legacy);
+      const arr = Array.isArray(w.data) ? w.data : [];
+      const cur = read([]);
+      for (const m of arr.slice(0, 50)) {
+        cur.unshift({ id: 'm' + Math.random().toString(36).slice(2), questionId: '', question: m.q ?? '', subject: '', topic: '', kind: 'concept-gap', why: m.why ?? '', fix: m.fix ?? '', note: '', difficulty: 'medium', date: m.at ?? new Date().toISOString().slice(0, 10), reviewed: false });
+      }
+      write(cur.slice(0, 500));
+      localStorage.setItem(KEY + '-migrated', '1');
+    }
+  } catch {}
+  function render() {
+    let arr = read([]);
+    const fs = (document.getElementById('fS').value ?? '').toLowerCase();
+    const fr = document.getElementById('fR').value;
+    const fo = document.getElementById('fO').value;
+    if (fs) arr = arr.filter((m) => ((m.subject ?? '') + ' ' + (m.topic ?? '') + ' ' + (m.question ?? '')).toLowerCase().includes(fs));
+    if (fr === 'open') arr = arr.filter((m) => !m.reviewed);
+    if (fr === 'done') arr = arr.filter((m) => m.reviewed);
+    if (fo === 'hard') { const rank = { hard: 0, medium: 1, easy: 2 }; arr = [...arr].sort((a, b) => (rank[a.difficulty] ?? 1) - (rank[b.difficulty] ?? 1)); }
+    document.getElementById('mN').textContent = arr.length;
+    document.getElementById('mlist').innerHTML = arr.length ? arr.slice(0, 100).map((m) => `
+      <div class="card" style="margin-bottom:.6rem">
+        <p style="margin:0"><strong>${(m.question ?? '').slice(0, 140)}</strong></p>
+        <p class="meta">${m.subject ?? ''} · ${m.topic ?? ''} · ${m.kind} · ${m.difficulty} · ${m.date} ${m.reviewed ? '· reviewed ✓' : ''}</p>
+        ${m.why ? `<p class="meta">Why: ${m.why}</p>` : ''}
+        ${m.fix ? `<p class="meta">Fix: ${m.fix}</p>` : ''}
+        ${m.note ? `<p class="meta">Note: ${m.note}</p>` : ''}
+        <p>${m.questionId ? `<a class="btn ghost small" href="/practice/test/?q=${m.questionId}">Reattempt →</a> ` : ''}<button class="btn ghost small" data-und="${m.id}">${m.reviewed ? 'Reopen' : 'Mark understood'}</button> <button class="btn ghost small" data-del="${m.id}">Delete</button></p>
+      </div>`).join('') : '<div class="empty">Empty. Add from Practice, PYQ or Learn pages — or above.</div>';
+    window._ms = arr;
+  }
+  document.getElementById('madd')?.addEventListener('click', () => {
+    const q = document.getElementById('mq').value.trim();
+    if (!q) { document.getElementById('mErr').textContent = 'Add the question first.'; return; }
+    document.getElementById('mErr').textContent = '';
+    const arr = read([]);
+    arr.unshift({ id: 'm' + Date.now().toString(36), questionId: '', question: q, subject: document.getElementById('ms').value.trim(), topic: document.getElementById('mt').value.trim(), kind: document.getElementById('mk').value, why: '', fix: document.getElementById('mc').value.trim(), note: document.getElementById('mn').value.trim(), difficulty: document.getElementById('md').value, date: new Date().toISOString().slice(0, 10), reviewed: false });
+    write(arr.slice(0, 500));
+    document.getElementById('mq').value = ''; document.getElementById('mc').value = ''; document.getElementById('mn').value = '';
+    render();
+  });
+  ['fS','fR','fO'].forEach((id) => document.getElementById(id)?.addEventListener('input', render));
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-und')) {
+      write(read([]).map((m) => m.id === t.getAttribute('data-und') ? { ...m, reviewed: !m.reviewed } : m));
+      render();
+    }
+    if (t.hasAttribute('data-del')) { write(read([]).filter((m) => m.id !== t.getAttribute('data-del'))); render(); }
+  });
+  document.getElementById('mexport')?.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({ schemaVersion: 1, data: read([]) }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mistake-notebook.json'; a.click();
+  });
+  document.getElementById('mclear')?.addEventListener('click', () => { write(read([]).filter((m) => !m.reviewed)); render(); });
+  render();
+</script>

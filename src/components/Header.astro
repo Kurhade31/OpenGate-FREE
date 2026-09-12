@@ -1,0 +1,35 @@
+---
+const path = Astro.url.pathname;
+const link = (href: string, label: string) => ({ href, label, current: path === href || (href !== '/' && path.startsWith(href)) });
+const links = [
+  link('/gate-2027/', 'GATE 2027'),
+  link('/syllabus/', 'Syllabus'),
+  link('/learn/', 'Learn'),
+  link('/practice/', 'Practice'),
+  link('/pyq/', 'PYQ'),
+  link('/mock/', 'Mocks'),
+  link('/tools/', 'Tools'),
+  link('/dashboard/', 'Dashboard'),
+  link('/resources/', 'Resources'),
+];
+---
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="GATE Free Platform home">GATE Free<small>open-source student platform</small></a>
+    <button class="btn ghost small menu-btn" id="menuBtn" aria-expanded="false" aria-controls="siteNav">Menu</button>
+    <nav class="nav" id="siteNav" aria-label="Primary">
+      {links.map((l) => (
+        <a href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a>
+      ))}
+      <a href="https://github.com/" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+<script>
+  const btn = document.getElementById('menuBtn');
+  const nav = document.getElementById('siteNav');
+  btn?.addEventListener('click', () => {
+    const open = nav?.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(!!open));
+  });
+</script>

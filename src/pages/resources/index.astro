@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import resources from '../../../data/resources/resources.json';
+---
+<Base title="Free GATE resources" description="Curated free GATE resources by subject and type: official links, NPTEL, references, practice. Verified dates shown." canonicalPath="/resources/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Curated · no link dumps · verified</p>
+    <h1>Free resources</h1>
+    <p class="lead">One primary resource per need beats twenty tabs. Filter by subject or type. Each entry says <em>why</em> to use it; unofficial items are never labelled official. <a href="/report-error/">Report dead links</a> · <a href="/contribute/">suggest a resource</a>.</p>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:720px">
+      <label>Search<input id="rQ" type="search" placeholder="e.g. NPTEL, OS…" /></label>
+      <label>Type<select id="rT"><option value="">All types</option></select></label>
+      <label>Paper<select id="rP"><option value="">All papers</option></select></label>
+    </div>
+    <p class="meta" id="rN" role="status"></p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2" id="rList">
+    {resources.map((r) => (
+      <div class="card" data-r={`${r.title} ${r.provider} ${r.why} ${r.subject ?? ''}`.toLowerCase()} data-t={r.type} data-p={r.paper ?? ''}>
+        <p><span class="pill">{r.type}</span> <span class="pill green">{r.cost}</span> {r.paper && <span class="pill amber">{r.paper}</span>} {r.subject && <span class="pill">{r.subject}</span>}</p>
+        <h3><a href={r.url} rel="noopener">{r.title}</a></h3>
+        <p>{r.why}</p>
+        <p class="meta">{r.provider} · {r.language} · Last checked {r.lastChecked} · Status: {r.status}</p>
+      </div>
+    ))}
+  </div></section>
+</Base>
+<script define:vars={{ items: resources }}>
+  const t = document.getElementById('rT'), p = document.getElementById('rP');
+  for (const v of [...new Set(items.map((x) => x.type))].sort()) { const o = document.createElement('option'); o.value = v; o.textContent = v; t.appendChild(o); }
+  for (const v of [...new Set(items.map((x) => x.paper).filter(Boolean))].sort()) { const o = document.createElement('option'); o.value = v; o.textContent = v; p.appendChild(o); }
+  function render() {
+    const q = (document.getElementById('rQ').value ?? '').toLowerCase();
+    let n = 0;
+    document.querySelectorAll('[data-r]').forEach((el) => {
+      const show = (!q || el.getAttribute('data-r').includes(q)) && (!t.value || el.getAttribute('data-t') === t.value) && (!p.value || el.getAttribute('data-p') === p.value);
+      el.style.display = show ? '' : 'none';
+      if (show) n++;
+    });
+    document.getElementById('rN').textContent = `${n} resource(s). Unofficial resources are never labelled official.`;
+  }
+  ['rQ','rT','rP'].forEach((id) => document.getElementById(id)?.addEventListener('input', render));
+  render();
+</script>

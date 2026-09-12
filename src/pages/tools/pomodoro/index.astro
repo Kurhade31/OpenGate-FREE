@@ -1,0 +1,67 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Pomodoro + study sessions" description="Focus timer (25/5) with session log saved locally. Start, pause, reset, custom lengths." canonicalPath="/tools/pomodoro/">
+  <section class="hero"><div class="wrap"><p class="kicker">Tool · sessions logged</p><h1>Pomodoro timer</h1><p class="lead">Default 25 min focus / 5 min break. Completed focus blocks append to your local session log (dashboard counts active days).</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card" style="text-align:center">
+      <p id="pMode" class="pill">focus</p>
+      <p id="pClock" style="font-size:3rem;font-weight:800;margin:.5rem 0" role="timer" aria-live="polite">25:00</p>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;max-width:320px;margin:0 auto"><label>Focus<input id="pF" type="number" value="25" min="1" max="120" /></label><label>Break<input id="pB" type="number" value="5" min="1" max="60" /></label></div>
+      <div class="btn-row" style="justify-content:center;margin-top:.8rem"><button class="btn primary" id="pStart">Start</button><button class="btn ghost" id="pReset">Reset</button></div>
+    </div>
+    <div class="card"><h3>Session log</h3><div id="pLog"></div><p><button class="btn ghost small" id="pClear">Clear log</button></p></div>
+  </div></section>
+</Base>
+<script>
+  let left = 25*60, mode = 'focus', timer = null;
+  const clock = document.getElementById('pClock'), modeEl = document.getElementById('pMode');
+  const fmt = (s) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  function paint() { clock.textContent = fmt(left); modeEl.textContent = mode; }
+  function log(kind, mins) {
+    try {
+      const raw = localStorage.getItem('gf-sessions-log-v1');
+      const a = raw ? JSON.parse(raw).data ?? [] : [];
+      a.unshift({ at: new Date().toISOString(), kind, mins });
+      localStorage.setItem('gf-sessions-log-v1', JSON.stringify({ schemaVersion: 1, data: a.slice(0, 100) }));
+      const act = localStorage.getItem('gf-activity-v1');
+      const aa = act ? (JSON.parse(act).data ?? []) : [];
+      aa.unshift({ at: new Date().toISOString(), kind: 'pomodoro', label: `${kind} ${mins}m` });
+      localStorage.setItem('gf-activity-v1', JSON.stringify({ schemaVersion: 1, data: aa.slice(0, 200) }));
+      render();
+    } catch {}
+  }
+  function render() {
+    try {
+      const raw = localStorage.getItem('gf-sessions-log-v1');
+      const a = raw ? JSON.parse(raw).data ?? [] : [];
+      document.getElementById('pLog').innerHTML = a.length
+        ? '<ul>' + a.slice(0, 12).map((s) => `<li class="meta">${s.at.slice(0,16).replace('T',' ')} — ${s.kind} ${s.mins}m</li>`).join('') + '</ul>'
+        : '<div class="empty">No sessions yet.</div>';
+    } catch {}
+  }
+  document.getElementById('pStart').addEventListener('click', (e) => {
+    if (timer) { clearInterval(timer); timer = null; e.target.textContent = 'Start'; return; }
+    e.target.textContent = 'Pause';
+    timer = setInterval(() => {
+      left--;
+      if (left <= 0) {
+        clearInterval(timer); timer = null;
+        document.getElementById('pStart').textContent = 'Start';
+        if (mode === 'focus') { log('focus', Number(document.getElementById('pF').value || 25)); mode = 'break'; left = Number(document.getElementById('pB').value || 5) * 60; }
+        else { log('break', Number(document.getElementById('pB').value || 5)); mode = 'focus'; left = Number(document.getElementById('pF').value || 25) * 60; }
+        try { new AudioContext(); } catch {}
+        alert(mode === 'break' ? 'Focus done. Take a break.' : 'Break over. Back to focus.');
+      }
+      paint();
+    }, 1000);
+  });
+  document.getElementById('pReset').addEventListener('click', () => {
+    clearInterval(timer); timer = null;
+    document.getElementById('pStart').textContent = 'Start';
+    mode = 'focus'; left = Number(document.getElementById('pF').value || 25) * 60;
+    paint();
+  });
+  document.getElementById('pClear').addEventListener('click', () => { try { localStorage.removeItem('gf-sessions-log-v1'); } catch {} render(); });
+  paint(); render();
+</script>

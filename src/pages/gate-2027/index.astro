@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import exam from '../../../data/gate/2027/exam.json';
+---
+<Base title="GATE 2027 hub" description="GATE 2027 overview: official links, dates, papers, syllabus, exam pattern, eligibility, application, preparation path. Organised by IIT Madras." canonicalPath="/gate-2027/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">GATE 2027 · IIT Madras</p>
+    <h1>GATE 2027 hub</h1>
+    <p class="lead">Everything a student needs to start: official information (with sources), papers, syllabus, pattern, dates, eligibility, application, and a preparation path. Last verified {exam.lastVerified}.</p>
+    <div class="btn-row"><a class="btn primary" href="/gate-2027/official/">Official information</a><a class="btn ghost" href="/gate-2027/papers/">All 30 papers</a><a class="btn ghost" href="/gate-2027/syllabus/">Syllabus</a></div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Official</h3><ul><li><a href="/gate-2027/official/">Official information + links</a></li><li><a href="/gate-2027/important-dates/">Important dates</a></li><li><a href="/gate-2027/eligibility/">Eligibility</a></li><li><a href="/gate-2027/application/">Application guide (GOAPS + DigiLocker)</a></li><li><a href="/gate-2027/exam-pattern/">Exam pattern + rules</a></li></ul></div>
+    <div class="card"><h3>Prepare</h3><ul><li><a href="/gate-2027/syllabus/">Syllabus guide</a></li><li><a href="/learn/">Learn by topic</a></li><li><a href="/practice/">Practice questions</a></li><li><a href="/pyq/">PYQ navigation</a></li><li><a href="/tools/study-planner/">Study planner</a></li><li><a href="/resources/">Free resources</a></li></ul></div>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <div class="source-box">Official site: <a href="https://gate2027.iitm.ac.in/" rel="noopener">gate2027.iitm.ac.in</a> · Syllabus: <a href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">exam papers &amp; syllabus</a> · Dates: <a href="https://gate2027.iitm.ac.in/important_dates" rel="noopener">important dates</a> · Last verified {exam.lastVerified}. Dates liable to change.</div>
+  </div></section>
+</Base>

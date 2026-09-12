@@ -1,0 +1,20 @@
+---
+import Base from '../../../layouts/Base.astro';
+import rules from '../../../../data/gate/2027/exam-rules.json';
+---
+<Base title="GATE 2027 exam pattern" description="GATE 2027 100-mark structure, General Aptitude, MCQ/MSQ/NAT types, and what to verify in the official brochure." canonicalPath="/gate-2027/exam-pattern/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Source type: official + editorial · verified {rules.verifiedAt}</p>
+    <h1>GATE 2027 exam pattern</h1>
+    <p class="lead">Each paper carries 100 marks. General Aptitude is common to all papers; the rest follows your paper's syllabus and paper-specific structure.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Confirmed structure</h3><ul>{rules.rules.map((r) => (<li>{r}</li>))}</ul><p class="meta">Marking used in our engine: MCQ 1-mark wrong −1/3, 2-mark wrong −2/3; MSQ/NAT no negative. Verify your edition's brochure — rules can change.</p></div>
+    <div class="card"><h3>Must verify in the brochure</h3><ul>{rules.mustVerify.map((r) => (<li>{r}</li>))}</ul><p class="meta">This site never hard-codes duration, marking or calculator rules as permanent truth — they live in <code>data/gate/2027/exam-rules.json</code>.</p></div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Score, rank and qualification (read carefully)</h3><p>GATE score is a normalized 0–1000 figure used for admissions; rank depends on the cohort each year. Cutoffs vary by paper, category and year. This site shows <strong>no rank predictor</strong> and makes <strong>no admission guarantee</strong> — any site promising ranks from mocks is misleading.</p></div>
+    <div class="card"><h3>Admissions &amp; PSUs — disclaimer</h3><p>M.Tech/MS admissions (IITs/IISc/NITs) and PSU recruitment each publish separate notifications with their own eligibility, cutoffs and timelines. GATE qualification alone guarantees neither admission nor employment. Always check the institute/PSU notification, not coaching summaries.</p></div>
+  </div></section>
+  <section class="section"><div class="wrap"><div class="source-box">Source: <a href={rules.source} rel="noopener">{rules.source}</a> · Verified {rules.verifiedAt}.</div><p><a class="btn ghost" href="/tools/mock-analyzer/">Mock analyser tool →</a></p></div></section>
+</Base>

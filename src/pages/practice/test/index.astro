@@ -1,0 +1,338 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Practice test engine" description="Create custom topic, subject or full tests with timer, palette, MSQ/NAT support, negative marking, analysis and retry." canonicalPath="/practice/test/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Practice · test mode · MCQ / MSQ / NAT</p>
+    <h1>Test engine</h1>
+    <p class="lead">Build a custom test: filter by paper, subject, topic, difficulty and type. Exam mode hides explanations until submit; practice mode shows them instantly. GATE-style negative marking applies to MCQ only.</p>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <div class="card" id="setupCard">
+      <h2 style="margin-top:0">1. Build your test</h2>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:none">
+        <label>Paper<select id="pPaper"><option value="">All</option></select></label>
+        <label>Subject<select id="pSubject"><option value="">All</option></select></label>
+        <label>Topic<input id="pTopic" placeholder="e.g. normalization (optional)" /></label>
+        <label>Difficulty<select id="pDiff"><option value="">All</option><option>easy</option><option>medium</option><option>hard</option></select></label>
+        <label>Type<select id="pType"><option value="">All</option><option>MCQ</option><option>MSQ</option><option>NAT</option></select></label>
+        <label>Questions (1–30)<input id="pCount" type="number" min="1" max="30" value="5" /></label>
+        <label>Time limit (minutes, 0 = none)<input id="pTime" type="number" min="0" max="180" value="10" /></label>
+        <label>Mode<select id="pMode"><option value="exam">Exam (results at end)</option><option value="practice">Practice (instant explanation)</option></select></label>
+        <label>Source<select id="pSrc"><option value="">Original + PYQ</option><option value="original">Original only</option><option value="pyq-reference">PYQ only</option></select></label>
+      </div>
+      <p class="meta" id="pAvail" role="status"></p>
+      <div class="btn-row"><button class="btn primary" id="pStart">Start test</button><button class="btn ghost" id="pRandom">Surprise me (random 5)</button></div>
+      <p class="meta">Instructions: MCQ single correct (−1/3 for 1-mark, −2/3 for 2-mark). MSQ must match ALL correct options (no negative). NAT numeric with tolerance (no negative). Unattempted = 0.</p>
+      <p class="meta" id="pErr" role="alert"></p>
+    </div>
+
+    <div class="card" id="runCard" hidden>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;justify-content:space-between">
+        <h2 style="margin:0">2. Attempt <span class="meta" id="rTitle"></span></h2>
+        <p style="margin:0" role="timer" aria-live="polite"><strong id="rTimer">--:--</strong> <span class="meta" id="rSpent"></span>
+          <button class="btn ghost small" id="rPause">Pause</button>
+          <button class="btn ghost small" id="rQuit">Quit</button>
+        </p>
+      </div>
+      <div id="rPalette" style="display:flex;gap:.4rem;flex-wrap:wrap;margin:.8rem 0" role="group" aria-label="Question palette"></div>
+      <div id="rQ"></div>
+      <div class="btn-row" style="margin-top:.8rem">
+        <button class="btn ghost" id="rPrev">← Previous</button>
+        <button class="btn ghost" id="rClear">Clear answer</button>
+        <button class="btn ghost" id="rMark">Mark for review</button>
+        <button class="btn ghost" id="rNext">Next →</button>
+        <button class="btn primary" id="rSubmit">Submit test</button>
+      </div>
+    </div>
+
+    <div class="card" id="resCard" hidden>
+      <h2 style="margin-top:0">3. Result</h2>
+      <div id="rOut"></div>
+      <div class="btn-row" style="margin-top:.8rem">
+        <button class="btn primary" id="rRetry">Retry incorrect</button>
+        <button class="btn ghost" id="rNew">New test</button>
+        <a class="btn ghost" href="/dashboard/">Dashboard →</a>
+      </div>
+      <div id="rReview" style="margin-top:1rem" class="grid"></div>
+    </div>
+  </div></section>
+</Base>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let BANK = [];
+  let test = null; // {qs, answers:Map, marked:Set, idx, mode, secsLeft, totalSecs, timerId, paused, startedAt, spent}
+  const norm = (s) => String(s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+  function negFor(q) {
+    if (q.questionType !== 'MCQ') return 0;
+    if (typeof q.negativeMarks === 'number') return q.negativeMarks;
+    return q.marks === 2 ? 2/3 : 1/3;
+  }
+  function evaluate(q, user) {
+    const max = q.marks ?? 1;
+    const empty = user === null || user === undefined || user === '' || (Array.isArray(user) && !user.length);
+    if (empty) return { attempted: false, correct: false, score: 0, max };
+    if (q.questionType === 'MCQ') {
+      const ok = norm(user) === norm(q.answer);
+      return ok ? { attempted: true, correct: true, score: max, max }
+        : { attempted: true, correct: false, score: -Math.round(negFor(q)*100)/100, max };
+    }
+    if (q.questionType === 'MSQ') {
+      const exp = new Set(((q.correctOptions && q.correctOptions.length ? q.correctOptions : [q.answer]).map(norm)));
+      const got = new Set((Array.isArray(user) ? user : [String(user)]).map((x) => norm(x)));
+      const ok = exp.size === got.size && [...exp].every((x) => got.has(x));
+      return ok ? { attempted: true, correct: true, score: max, max } : { attempted: true, correct: false, score: 0, max };
+    }
+    const tol = q.tolerance ?? 0;
+    const a = Number(String(user).trim()), b = Number(String(q.answer).trim());
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return { attempted: true, correct: false, score: 0, max };
+    return Math.abs(a-b) <= tol + 1e-9
+      ? { attempted: true, correct: true, score: max, max }
+      : { attempted: true, correct: false, score: 0, max };
+  }
+
+  async function loadBank() {
+    if (BANK.length) return BANK;
+    const r = await fetch('/practice-index.json');
+    if (!r.ok) throw new Error('Could not load question bank.');
+    BANK = await r.json();
+    // populate filters
+    const papers = [...new Set(BANK.map((q) => q.paper))].sort();
+    const subs = [...new Set(BANK.map((q) => q.subject))].sort();
+    const pp = $('pPaper'), ps = $('pSubject');
+    const params = new URLSearchParams(location.search);
+    for (const p of papers) { const o = document.createElement('option'); o.value = p; o.textContent = p; pp.appendChild(o); }
+    for (const s of subs) { const o = document.createElement('option'); o.value = s; o.textContent = s; ps.appendChild(o); }
+    if (params.get('paper')) pp.value = params.get('paper').toUpperCase();
+    if (params.get('subject')) ps.value = params.get('subject');
+    if (params.get('topic')) $('pTopic').value = params.get('topic');
+    if (params.get('count')) $('pCount').value = params.get('count');
+    if (params.get('time')) $('pTime').value = params.get('time');
+    if (params.get('diff')) $('pDiff').value = params.get('diff');
+    if (params.get('type')) $('pType').value = params.get('type');
+    if (params.get('mode')) $('pMode').value = params.get('mode');
+    if (params.get('src') !== null) $('pSrc').value = params.get('src');
+    const qid = params.get('q');
+    updateAvail();
+    if (qid) {
+      const one = BANK.find((x) => x.id === qid);
+      if (one) { $('pCount').value = '1'; startTest([one], 'practice', 0); }
+    }
+    return BANK;
+  }
+  function filtered() {
+    const paper = $('pPaper').value, subj = $('pSubject').value;
+    const topic = $('pTopic').value.trim().toLowerCase();
+    const diff = $('pDiff').value, type = $('pType').value, src = $('pSrc').value;
+    return BANK.filter((q) =>
+      (!paper || q.paper === paper) && (!subj || q.subject === subj) &&
+      (!topic || (q.topic + ' ' + q.subject + ' ' + q.question).toLowerCase().includes(topic)) &&
+      (!diff || q.difficulty === diff) && (!type || q.questionType === type) &&
+      (!src || q.type === src));
+  }
+  function updateAvail() {
+    try { $('pAvail').textContent = `${filtered().length} question(s) match. Showing honest counts — if fewer than requested, we use what's available.`; } catch {}
+  }
+  ['pPaper','pSubject','pTopic','pDiff','pType','pSrc'].forEach((id) => $(id)?.addEventListener('input', updateAvail));
+
+  function fmt(s) { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+  function tick() {
+    if (!test || test.paused) return;
+    test.secsLeft -= 1; test.spent += 1;
+    if (test.totalSecs > 0 && test.secsLeft <= 0) { submit(true); return; }
+    paintTimer();
+  }
+  function paintTimer() {
+    $('rTimer').textContent = test.totalSecs > 0 ? fmt(test.secsLeft) : fmt(test.spent) + ' elapsed';
+    $('rSpent').textContent = `Q ${test.idx+1}/${test.qs.length}`;
+  }
+
+  function startTest(qs, mode, minutes) {
+    if (!qs.length) { $('pErr').textContent = 'No questions match. Loosen filters.'; return; }
+    $('pErr').textContent = '';
+    test = { qs, answers: new Map(), marked: new Set(), idx: 0, mode, totalSecs: minutes*60, secsLeft: minutes*60, spent: 0, paused: false, timerId: null };
+    $('setupCard').hidden = true; $('resCard').hidden = true; $('runCard').hidden = false;
+    $('rTitle').textContent = `· ${qs.length} Qs · ${mode} mode`;
+    $('rPause').textContent = 'Pause';
+    clearInterval(test.timerId);
+    test.timerId = setInterval(tick, 1000);
+    paintPalette(); paintQ(); paintTimer();
+    $('runCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  $('pStart')?.addEventListener('click', () => {
+    const pool = filtered();
+    let n = Math.max(1, Math.min(30, Number($('pCount').value || 5)));
+    n = Math.min(n, pool.length);
+    const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, n);
+    startTest(shuffled, $('pMode').value, Number($('pTime').value || 0));
+  });
+  $('pRandom')?.addEventListener('click', () => {
+    const shuffled = [...BANK].sort(() => Math.random() - 0.5).slice(0, Math.min(5, BANK.length));
+    startTest(shuffled, 'practice', 10);
+  });
+
+  function paintPalette() {
+    const pal = $('rPalette'); pal.innerHTML = '';
+    test.qs.forEach((q, i) => {
+      const b = document.createElement('button');
+      b.className = 'btn ghost small';
+      b.textContent = `${i+1}`;
+      b.setAttribute('aria-label', `Go to question ${i+1}${test.marked.has(i) ? ' (marked)' : ''}`);
+      const ans = test.answers.get(q.id);
+      const answered = ans !== undefined && ans !== null && ans !== '' && !(Array.isArray(ans) && !ans.length);
+      b.style.borderColor = i === test.idx ? 'var(--brand)' : answered ? 'green' : test.marked.has(i) ? 'orange' : '';
+      b.style.fontWeight = i === test.idx ? '800' : '600';
+      b.addEventListener('click', () => { test.idx = i; paintPalette(); paintQ(); paintTimer(); });
+      pal.appendChild(b);
+    });
+  }
+
+  function paintQ() {
+    const q = test.qs[test.idx];
+    const box = $('rQ');
+    const cur = test.answers.get(q.id);
+    let inputHtml = '';
+    if (q.questionType === 'MCQ') {
+      inputHtml = `<div style="display:grid;gap:.4rem" role="radiogroup" aria-label="Options">` +
+        q.options.map((o) => `<label style="display:flex;gap:.5rem;align-items:center;border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;cursor:pointer"><input type="radio" name="opt" value="${o.replace(/"/g,'&quot;')}" ${norm(cur)===norm(o)?'checked':''}/> ${o}</label>`).join('') + `</div>`;
+    } else if (q.questionType === 'MSQ') {
+      const arr = Array.isArray(cur) ? cur : [];
+      inputHtml = `<div style="display:grid;gap:.4rem"><p class="meta">Select ALL correct (no partial credit).</p>` +
+        q.options.map((o) => `<label style="display:flex;gap:.5rem;align-items:center;border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;cursor:pointer"><input type="checkbox" name="optms" value="${o.replace(/"/g,'&quot;')}" ${arr.some((x)=>norm(x)===norm(o))?'checked':''}/> ${o}</label>`).join('') + `</div>`;
+    } else {
+      inputHtml = `<label>Your answer (number)<input id="natIn" inputmode="decimal" placeholder="e.g. 2.4" value="${cur ?? ''}" /></label>${q.tolerance ? `<p class="meta">Tolerance ±${q.tolerance}</p>` : ''}`;
+    }
+    const instant = test.mode === 'practice' && cur !== undefined && cur !== null && cur !== '' && !(Array.isArray(cur) && !cur.length);
+    const ev = instant ? evaluate(q, cur) : null;
+    box.innerHTML = `<p><span class="pill">${q.paper}</span> <span class="pill green">${q.difficulty}</span> <span class="pill amber">${q.questionType} · ${q.marks} mark${q.marks>1?'s':''}</span> ${test.marked.has(test.idx) ? '<span class="pill">marked</span>' : ''}</p>
+      <p style="font-weight:700;color:var(--ink)">${q.question}</p>
+      ${inputHtml}
+      <div class="btn-row" style="margin-top:.6rem"><button class="btn primary small" id="qSave">Save answer</button></div>
+      ${ev ? `<div class="source-box" style="margin-top:.6rem"><strong>${ev.correct ? 'Correct' : 'Incorrect'} (${ev.score} / ${ev.max})</strong><br/>Answer: ${q.questionType==='MSQ' ? (q.correctOptions??[q.answer]).join(' + ') : q.answer}<br/>${q.explanation}</div>` : ''}
+      <p class="meta" style="margin-top:.5rem">${q.subject} · ${q.topic} · ${q.type === 'pyq-reference' ? `PYQ ${q.year ?? ''} · community explanation` : (q.sourceLabel ?? 'Platform original')}</p>`;
+    $('qSave')?.addEventListener('click', saveCurrent);
+    box.querySelectorAll('input[name="opt"]').forEach((r) => r.addEventListener('change', saveCurrent));
+    box.querySelectorAll('input[name="optms"]').forEach((c) => c.addEventListener('change', saveCurrent));
+  }
+
+  function saveCurrent() {
+    const q = test.qs[test.idx];
+    if (q.questionType === 'MCQ') {
+      const sel = document.querySelector('input[name="opt"]:checked');
+      test.answers.set(q.id, sel ? sel.value : '');
+    } else if (q.questionType === 'MSQ') {
+      const vals = [...document.querySelectorAll('input[name="optms"]:checked')].map((x) => x.value);
+      test.answers.set(q.id, vals);
+    } else {
+      const inp = document.getElementById('natIn');
+      test.answers.set(q.id, inp instanceof HTMLInputElement ? inp.value.trim() : '');
+    }
+    paintPalette(); paintQ();
+  }
+
+  $('rPrev')?.addEventListener('click', () => { saveSilent(); if (test.idx > 0) test.idx--; paintPalette(); paintQ(); paintTimer(); });
+  $('rNext')?.addEventListener('click', () => { saveSilent(); if (test.idx < test.qs.length - 1) test.idx++; paintPalette(); paintQ(); paintTimer(); });
+  function saveSilent() {
+    try {
+      const q = test.qs[test.idx];
+      if (q.questionType === 'NAT') { const inp = document.getElementById('natIn'); if (inp instanceof HTMLInputElement && inp.value.trim()) test.answers.set(q.id, inp.value.trim()); }
+    } catch {}
+  }
+  $('rClear')?.addEventListener('click', () => { const q = test.qs[test.idx]; test.answers.delete(q.id); paintPalette(); paintQ(); });
+  $('rMark')?.addEventListener('click', () => { if (test.marked.has(test.idx)) test.marked.delete(test.idx); else test.marked.add(test.idx); paintPalette(); paintQ(); });
+  $('rPause')?.addEventListener('click', () => { test.paused = !test.paused; $('rPause').textContent = test.paused ? 'Resume' : 'Pause'; });
+  $('rQuit')?.addEventListener('click', () => { if (!confirm('Quit test? Answers will be lost.')) return; clearInterval(test.timerId); test = null; $('runCard').hidden = true; $('setupCard').hidden = false; });
+  $('rSubmit')?.addEventListener('click', () => submit(false));
+
+  function submit(auto) {
+    saveSilent();
+    const un = test.qs.filter((q) => { const a = test.answers.get(q.id); return a === undefined || a === null || a === '' || (Array.isArray(a) && !a.length); }).length;
+    if (!auto && !confirm(`Submit? ${un} unattempted out of ${test.qs.length}.`)) return;
+    clearInterval(test.timerId);
+    const recs = test.qs.map((q) => {
+      const ev = evaluate(q, test.answers.get(q.id));
+      return { q, ...ev, user: test.answers.get(q.id) };
+    });
+    let score = 0, max = 0, correct = 0, attempted = 0;
+    const byTopic = {};
+    for (const r of recs) {
+      score += r.score; max += r.max;
+      if (r.attempted) attempted++;
+      if (r.correct) correct++;
+      const t = r.q.topic || 'general';
+      if (!byTopic[t]) byTopic[t] = { n: 0, ok: 0 };
+      byTopic[t].n++; if (r.correct) byTopic[t].ok++;
+    }
+    score = Math.round(score*100)/100;
+    const acc = attempted ? Math.round((correct/attempted)*100) : 0;
+    const weak = Object.entries(byTopic).filter(([,v]) => v.ok/v.n < 0.6).map(([k]) => k);
+    // persist mock + activity + attempts
+    try {
+      const mocks = JSON.parse((JSON.parse(localStorage.getItem('gf-mocks-v1') ?? 'null')?.data ?? '[]').toString() === '' ? '[]' : '[]');
+    } catch {}
+    try {
+      const raw = localStorage.getItem('gf-mocks-v1');
+      const arr = raw ? (JSON.parse(raw).data ?? []) : [];
+      arr.unshift({ at: new Date().toISOString(), n: test.qs.length, score, max, acc, mode: test.mode });
+      localStorage.setItem('gf-mocks-v1', JSON.stringify({ schemaVersion: 1, data: arr.slice(0, 50) }));
+      const att = localStorage.getItem('gatefree.v1.attempts');
+      const w = att ? JSON.parse(att) : { data: [] };
+      const list = Array.isArray(w.data) ? w.data : [];
+      for (const r of recs) list.push({ id: r.q.id, correct: r.correct, at: new Date().toISOString() });
+      localStorage.setItem('gatefree.v1.attempts', JSON.stringify({ schemaVersion: 1, data: list.slice(-500) }));
+      const act = localStorage.getItem('gf-activity-v1');
+      const aa = act ? (JSON.parse(act).data ?? []) : [];
+      aa.unshift({ at: new Date().toISOString(), kind: 'mock', label: `${score}/${max} (${acc}%)` });
+      localStorage.setItem('gf-activity-v1', JSON.stringify({ schemaVersion: 1, data: aa.slice(0, 200) }));
+    } catch {}
+    $('runCard').hidden = true; $('resCard').hidden = false;
+    $('rOut').innerHTML = `<p><strong>Score:</strong> ${score} / ${max} · <strong>Accuracy:</strong> ${acc}% (${correct}/${attempted} attempted) · <strong>Unattempted:</strong> ${test.qs.length - attempted} · <strong>Time:</strong> ${Math.round(test.spent/60)} min${auto ? ' (auto-submitted)' : ''}</p>
+      <p class="meta">Weak topics: ${weak.length ? weak.join(', ') : 'none — solid round.'} · <a href="/tools/mistake-tracker/">Log misses →</a></p>
+      <table><thead><tr><th>Topic</th><th>Correct</th><th>Rate</th></tr></thead><tbody>${Object.entries(byTopic).map(([t,v]) => `<tr><td>${t}</td><td>${v.ok}/${v.n}</td><td>${Math.round((v.ok/v.n)*100)}%</td></tr>`).join('')}</tbody></table>`;
+    const rev = $('rReview'); rev.innerHTML = '';
+    recs.forEach((r, i) => {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `<p><strong>Q${i+1}.</strong> ${r.q.question} <span class="pill">${r.correct ? 'correct' : r.attempted ? 'wrong' : 'skipped'}</span> <span class="meta">${r.score}/${r.max}</span></p>
+        <p class="meta">Your answer: ${Array.isArray(r.user) ? (r.user.join(', ') || '—') : (r.user || '—')} · Correct: ${r.q.questionType === 'MSQ' ? (r.q.correctOptions ?? [r.q.answer]).join(' + ') : r.q.answer}</p>
+        <p>${r.q.explanation}</p>
+        <p><button class="btn ghost small" data-b="${r.q.id}">Bookmark</button> <button class="btn ghost small" data-m="${r.q.id}" data-s="${r.q.subject}" data-t="${r.q.topic}" data-q="${r.q.question.replace(/"/g,'&quot;')}">+ Mistake</button></p>`;
+      rev.appendChild(d);
+    });
+    test.recs = recs;
+    $('resCard').scrollIntoView({ behavior: 'smooth' });
+  }
+  document.addEventListener('click', (e) => {
+    const el = e.target;
+    if (!(el instanceof HTMLElement)) return;
+    if (el.hasAttribute('data-b')) {
+      try {
+        const raw = localStorage.getItem('gf-bookmarks-q-v1');
+        const a = raw ? (JSON.parse(raw).data ?? []) : [];
+        if (!a.includes(el.getAttribute('data-b'))) a.push(el.getAttribute('data-b'));
+        localStorage.setItem('gf-bookmarks-q-v1', JSON.stringify({ schemaVersion: 1, data: a }));
+        el.textContent = 'Bookmarked ✓';
+      } catch {}
+    }
+    if (el.hasAttribute('data-m')) {
+      try {
+        const raw = localStorage.getItem('gf-mistakes-v2');
+        const a = raw ? (JSON.parse(raw).data ?? []) : [];
+        a.unshift({ id: 'm'+Date.now().toString(36), questionId: el.getAttribute('data-m'), question: el.getAttribute('data-q') ?? '', subject: el.getAttribute('data-s') ?? '', topic: el.getAttribute('data-t') ?? '', kind: 'concept-gap', why: '', fix: '', note: '', difficulty: 'medium', date: new Date().toISOString().slice(0,10), reviewed: false });
+        localStorage.setItem('gf-mistakes-v2', JSON.stringify({ schemaVersion: 1, data: a.slice(0,500) }));
+        el.textContent = 'Added ✓';
+      } catch {}
+    }
+  });
+  $('rRetry')?.addEventListener('click', () => {
+    const wrong = (test.recs ?? []).filter((r) => !r.correct).map((r) => r.q);
+    if (!wrong.length) { alert('Nothing to retry — all correct.'); return; }
+    startTest(wrong, test.mode, 0);
+  });
+  $('rNew')?.addEventListener('click', () => { $('resCard').hidden = true; $('setupCard').hidden = false; });
+
+  loadBank().catch((err) => { $('pErr').textContent = err.message; });
+</script>

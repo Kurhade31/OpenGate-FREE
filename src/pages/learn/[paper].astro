@@ -1,0 +1,43 @@
+---
+import Base from '../../layouts/Base.astro';
+import cs from '../../../data/subjects/cs.json';
+import ec from '../../../data/subjects/ec.json';
+import ee from '../../../data/subjects/ee.json';
+import me from '../../../data/subjects/me.json';
+import ce from '../../../data/subjects/ce.json';
+import da from '../../../data/subjects/da.json';
+
+export async function getStaticPaths() {
+  return ['cs','ec','ee','me','ce','da'].map((paper) => ({ params: { paper } }));
+}
+const { paper } = Astro.params;
+const map: Record<string, { code: string; name: string; subjects: typeof cs }> = {
+  cs: { code: 'CS', name: 'Computer Science & IT', subjects: cs },
+  ec: { code: 'EC', name: 'Electronics & Communication', subjects: ec },
+  ee: { code: 'EE', name: 'Electrical Engineering', subjects: ee },
+  me: { code: 'ME', name: 'Mechanical Engineering', subjects: me },
+  ce: { code: 'CE', name: 'Civil Engineering', subjects: ce },
+  da: { code: 'DA', name: 'Data Science & AI', subjects: da },
+};
+const entry = map[(paper ?? '').toLowerCase()];
+if (!entry) throw new Error(`Unknown paper: ${paper}`);
+---
+<Base title={`${entry.code} topics — learn`} description={`${entry.code} (${entry.name}) subject and topic map for GATE 2027: prerequisites, core ideas, practice and revision.`} canonicalPath={`/learn/${entry.code.toLowerCase()}/`}>
+  <section class="hero"><div class="wrap">
+    <p class="kicker">{entry.code} · topic map</p>
+    <h1>{entry.code} — {entry.name}</h1>
+    <p class="lead">Subjects and topics derived from the GATE syllabus structure. Open a subject to see the beginner path: prerequisites → concepts → example → practice → revision.</p>
+    <div class="btn-row"><a class="btn ghost" href={`/gate-2027/papers/${entry.code.toLowerCase()}/`}>Paper overview</a><a class="btn ghost" href={`/practice/?paper=${entry.code}`}>Practice {entry.code}</a></div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    {entry.subjects.map((s) => (
+      <div class="card">
+        <h3>{s.name}</h3>
+        <p>{s.description}</p>
+        <p class="meta">Topics: {s.topics.join(' · ')}</p>
+        <p><a href={`/practice/?paper=${entry.code}&subject=${encodeURIComponent(s.name)}`}>Practice {s.name} →</a></p>
+      </div>
+    ))}
+  </div></section>
+  <section class="section"><div class="wrap"><div class="source-box">Topic maps are editorial guides. The authoritative syllabus is the <a href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">official 2027 PDF</a>.</div></div></section>
+</Base>

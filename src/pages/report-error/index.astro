@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Report an error" description="Report wrong facts, broken links or copyright issues. No account needed." canonicalPath="/report-error/" noindex={true}>
+  <section class="hero"><div class="wrap"><h1>Report an error</h1><p class="lead">Found a wrong date, broken link or bad explanation? Tell us — no account needed. For GitHub users, opening an issue is fastest.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><div class="form-grid">
+      <label>Page URL<input id="rpage" /></label>
+      <label>Issue type<select id="rtype"><option>Wrong fact</option><option>Broken link</option><option>Bad explanation</option><option>Copyright concern</option><option>Other</option></select></label>
+      <label>What is wrong?<textarea id="rwhat" rows="3"></textarea></label>
+      <label>Suggested correction + source<textarea id="rfix" rows="3"></textarea></label>
+      <button class="btn primary" id="rgo">Compose GitHub issue</button>
+      <p class="meta">This opens a pre-filled GitHub issue (no data is sent to our servers — there are none). Alternatively email the maintainer via the repository.</p>
+    </div></div>
+    <div class="card"><h3>What helps</h3><ul><li>Exact page URL + quoted wrong text.</li><li>Correct value + official source link.</li><li>Screenshot for layout issues.</li></ul></div>
+  </div></section>
+</Base>
+<script>
+  document.getElementById('rpage').value = location.href;
+  document.getElementById('rgo')?.addEventListener('click', () => {
+    const page = document.getElementById('rpage').value;
+    const type = document.getElementById('rtype').value;
+    const what = document.getElementById('rwhat').value;
+    const fix = document.getElementById('rfix').value;
+    const body = encodeURIComponent(`Page: ${page}\nType: ${type}\n\nWhat is wrong?\n${what}\n\nSuggested correction + source:\n${fix}`);
+    const title = encodeURIComponent(`[${type}] ${page}`);
+    window.open(`https://github.com/issues/new?title=${title}&body=${body}`, '_blank', 'noopener');
+  });
+</script>

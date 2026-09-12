@@ -1,0 +1,123 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Dashboard" description="Your local-first GATE dashboard: progress, accuracy, streak, revision queue, mistakes and next steps. No login." canonicalPath="/dashboard/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Dashboard · local-first · no login</p>
+    <h1>Your dashboard</h1>
+    <p class="lead">Everything is stored in this browser. Refresh-safe. Export before clearing browser data.</p>
+    <div class="btn-row"><button class="btn ghost small" id="dExport">Export progress (JSON)</button><button class="btn ghost small" id="dImportBtn">Import</button><input id="dImport" type="file" accept="application/json" hidden /><button class="btn ghost small" id="dReset">Reset all</button></div>
+    <p class="meta">We collect nothing. See <a href="/privacy/">privacy</a>.</p>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <div class="grid cols-3" id="dCards"></div>
+    <div class="grid cols-2" style="margin-top:1rem">
+      <div class="card"><h3>Recommended next step</h3><div id="dNext"><div class="empty">Loading…</div></div></div>
+      <div class="card"><h3>Recent activity</h3><div id="dAct"><div class="empty">No activity yet — complete a topic or test.</div></div></div>
+    </div>
+    <div class="card" style="margin-top:1rem"><h3>Study targets</h3>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr auto;max-width:none">
+        <label>Target<input id="tIn" placeholder="e.g. Finish OS scheduling" /></label>
+        <label>Date<input id="tDate" type="date" /></label>
+        <label>&nbsp;<button class="btn primary small" id="tAdd">Add</button></label>
+      </div>
+      <div id="tList" style="margin-top:.6rem"></div>
+    </div>
+  </div></section>
+</Base>
+<script>
+  const read = (k, f) => { try { const r = localStorage.getItem(k); if (!r) return f; return JSON.parse(r).data ?? f; } catch { return f; } };
+  const write = (k, d) => { try { localStorage.setItem(k, JSON.stringify({ schemaVersion: 1, data: d })); } catch {} };
+  function render() {
+    const topics = read('gf-topics-v1', {});
+    const done = Object.values(topics).filter((v) => v === 'completed').length;
+    const prog = Object.keys(topics).length;
+    const att = read('gatefree.v1.attempts', []);
+    const acc = att.length ? Math.round((att.filter((a) => a.correct).length / att.length) * 100) : 0;
+    const mocks = read('gf-mocks-v1', []);
+    const saved = read('gf-bookmarks-q-v1', []).length + read('gf-saved-topics-v1', []).length;
+    const mistakes = read('gf-mistakes-v2', []);
+    const unrev = mistakes.filter((m) => !m.reviewed).length;
+    const revQ = read('gf-revision-topics-v1', []).length;
+    const streak = read('gf-streak-v1', { count: 0 });
+    const cards = [
+      ['Progress', prog ? `${done}/${prog} topics` : 'No topics yet', '/syllabus/'],
+      ['Practice', `${att.length} attempted · ${acc}%`, '/practice/test/'],
+      ['Mocks', `${mocks.length} completed`, '/mock/'],
+      ['Saved', `${saved} items`, '/revision/'],
+      ['Mistakes', `${mistakes.length} (${unrev} open)`, '/tools/mistake-tracker/'],
+      ['Revision queue', `${revQ} topics`, '/revision/'],
+      ['Streak', `${streak.count ?? 0} active day(s)`, '/tools/study-planner/'],
+    ];
+    document.getElementById('dCards').innerHTML = cards.map(([t, v, h]) => `<div class="card"><h3 style="margin:0">${t}</h3><p style="font-size:1.3rem;font-weight:800;margin:.3rem 0">${v}</p><p><a href="${h}">Open →</a></p></div>`).join('');
+    // next step
+    const weak = {};
+    for (const a of read('gatefree.v1.attempts', []).slice(-100)) { /* attempts lack topic; use mocks */ }
+    let next = 'Start with <a href="/syllabus/">syllabus</a> → pick one topic → <a href="/practice/test/">attempt 5 Qs</a>.';
+    if (unrev > 0) next = `Review <a href="/tools/mistake-tracker/">${unrev} open mistake(s)</a>, then retry them.`;
+    else if (revQ > 0) next = `Revise <a href="/revision/">${revQ} queued topic(s)</a> today (one primary + one practice + one revision block).`;
+    else if (att.length > 0 && mocks.length === 0) next = 'Take your first <a href="/mock/">subject mock</a> to find weak topics.';
+    document.getElementById('dNext').innerHTML = `<p>${next}</p>`;
+    const act = read('gf-activity-v1', []).slice(0, 8);
+    document.getElementById('dAct').innerHTML = act.length
+      ? '<ul>' + act.map((a) => `<li class="meta">${(a.at ?? '').slice(0, 16).replace('T', ' ')} — ${a.kind}${a.label ? ': ' + a.label : ''}${a.status ? ' (' + a.status + ')' : ''}</li>`).join('') + '</ul>'
+      : '<div class="empty">No activity yet.</div>';
+    // targets
+    const targets = read('gf-targets-v1', []);
+    document.getElementById('tList').innerHTML = targets.length
+      ? targets.map((t) => `<p><input type="checkbox" data-t="${t.id}" ${t.done ? 'checked' : ''}/> <strong>${t.text}</strong> <span class="meta">${t.date ?? ''}</span> <button class="btn ghost small" data-del="${t.id}">Delete</button></p>`).join('')
+      : '<div class="empty">No targets. Add one above.</div>';
+  }
+  document.getElementById('tAdd')?.addEventListener('click', () => {
+    const text = document.getElementById('tIn').value.trim();
+    if (!text) return;
+    const arr = read('gf-targets-v1', []);
+    arr.unshift({ id: 't' + Date.now().toString(36), text, date: document.getElementById('tDate').value, done: false });
+    write('gf-targets-v1', arr.slice(0, 50));
+    document.getElementById('tIn').value = '';
+    render();
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-t')) {
+      const arr = read('gf-targets-v1', []).map((x) => x.id === t.getAttribute('data-t') ? { ...x, done: t.checked } : x);
+      write('gf-targets-v1', arr); render();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-del')) {
+      write('gf-targets-v1', read('gf-targets-v1', []).filter((x) => x.id !== t.getAttribute('data-del')));
+      render();
+    }
+  });
+  document.getElementById('dExport')?.addEventListener('click', () => {
+    const keys = ['gf-topics-v1','gf-important-v1','gf-revision-topics-v1','gf-notes-v1','gf-bookmarks-q-v1','gf-mistakes-v2','gf-activity-v1','gf-streak-v1','gf-targets-v1','gf-sessions-v1','gf-mocks-v1','gatefree.v1.attempts','gatefree.v1.planner','gf-saved-topics-v1'];
+    const bundle = { schemaVersion: 1, exportedAt: new Date().toISOString(), data: {} };
+    for (const k of keys) { try { bundle.data[k] = localStorage.getItem(k) ? JSON.parse(localStorage.getItem(k)).data : null; } catch { bundle.data[k] = null; } }
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'gatefree-progress.json'; a.click();
+  });
+  document.getElementById('dImportBtn')?.addEventListener('click', () => document.getElementById('dImport').click());
+  document.getElementById('dImport')?.addEventListener('change', async (e) => {
+    try {
+      const f = e.target.files[0];
+      const j = JSON.parse(await f.text());
+      if (j.schemaVersion !== 1) throw new Error('Bad backup version.');
+      for (const [k, v] of Object.entries(j.data ?? {})) {
+        if (v !== null && v !== undefined) localStorage.setItem(k, JSON.stringify({ schemaVersion: 1, data: v }));
+      }
+      alert('Imported.'); render();
+    } catch (err) { alert('Import failed: ' + err.message); }
+  });
+  document.getElementById('dReset')?.addEventListener('click', () => {
+    if (!confirm('Delete ALL local progress?')) return;
+    for (const k of Object.keys(localStorage).filter((x) => x.startsWith('gf-') || x.startsWith('gatefree.'))) {
+      try { localStorage.removeItem(k); } catch {}
+    }
+    render();
+  });
+  render();
+</script>

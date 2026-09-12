@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ce-ga",
+    "paper": "CE",
+    "name": "General Aptitude",
+    "slug": "general-aptitude",
+    "description": "Verbal and numerical aptitude common to all GATE papers.",
+    "topics": ["verbal-aptitude", "numerical-aptitude", "reasoning"],
+    "sources": []
+  },
+  {
+    "id": "ce-em",
+    "paper": "CE",
+    "name": "Engineering Mathematics",
+    "slug": "engineering-mathematics",
+    "description": "Linear algebra, calculus, differential equations, probability, numerical methods.",
+    "topics": ["linear-algebra", "calculus", "differential-equations", "probability", "numerical-methods"],
+    "sources": []
+  },
+  {
+    "id": "ce-struct",
+    "paper": "CE",
+    "name": "Structural Engineering",
+    "slug": "structural",
+    "description": "Solid mechanics, structural analysis, RCC, steel, construction materials.",
+    "topics": ["solid-mechanics", "structural-analysis", "rcc", "steel"],
+    "sources": []
+  },
+  {
+    "id": "ce-geotech",
+    "paper": "CE",
+    "name": "Geotechnical & Foundation Engineering",
+    "slug": "geotechnical",
+    "description": "Soil mechanics, foundation engineering, shear strength, consolidation.",
+    "topics": ["soil-mechanics", "consolidation", "shear-strength", "foundations"],
+    "sources": []
+  },
+  {
+    "id": "ce-water",
+    "paper": "CE",
+    "name": "Water Resources & Environmental",
+    "slug": "water-environment",
+    "description": "Fluid mechanics, hydrology, irrigation, water treatment, air/noise pollution.",
+    "topics": ["fluid-mechanics", "hydrology", "irrigation", "environmental"],
+    "sources": []
+  },
+  {
+    "id": "ce-transpo",
+    "paper": "CE",
+    "name": "Transportation & Surveying",
+    "slug": "transportation-surveying",
+    "description": "Highway materials, geometric design, traffic, surveying.",
+    "topics": ["highway", "traffic", "surveying"],
+    "sources": []
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "edition": "GATE 2027",
+  "source": "https://gate2027.iitm.ac.in/exam_papers_and_syllabus",
+  "verifiedAt": "2026-09-11",
+  "version": 1,
+  "rules": [
+    "Each paper carries 100 marks (General Aptitude is common to all papers; remaining marks follow the paper syllabus and paper-specific structure).",
+    "Question types include MCQ, MSQ and NAT as per the official edition structure — verify the current brochure for the exact mix, marking and calculator policy.",
+    "Syllabi have been revised for GATE 2027; always use the edition-specific syllabus PDF for your paper."
+  ],
+  "mustVerify": [
+    "Exact duration and session reporting time",
+    "Marking scheme and negative marking per question type",
+    "Calculator / virtual calculator policy",
+    "Navigation rules inside the CBT interface",
+    "Photo, signature and DigiLocker registration requirements for Indian nationals"
+  ]
+}

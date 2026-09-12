@@ -1,0 +1,19 @@
+{
+  "edition": "GATE 2027",
+  "source": "https://gate2027.iitm.ac.in/important_dates",
+  "verifiedAt": "2026-09-11",
+  "version": 1,
+  "dates": [
+    { "event": "GOAPS portal opens (registration starts)", "date": "2026-09-02", "status": "official" },
+    { "event": "Regular registration closes", "date": "2026-09-27", "status": "official" },
+    { "event": "Extended registration closes (with late fee)", "date": "2026-10-05", "status": "official" },
+    { "event": "Application rectification window", "date": "2026-10-14 to 2026-10-21", "status": "official" },
+    { "event": "Admit card release", "date": "Not officially announced yet", "status": "to-be-announced" },
+    { "event": "Exam city allotment notification", "date": "2027-01-04", "status": "official" },
+    { "event": "Examinations", "date": "2027-02-06 to 2027-02-07, 2027-02-13 to 2027-02-14, 2027-02-20 to 2027-02-21", "status": "official" },
+    { "event": "Answer key release", "date": "Not officially announced yet", "status": "to-be-announced" },
+    { "event": "Results announced", "date": "2027-03-19", "status": "official" },
+    { "event": "Scorecard download", "date": "Not officially announced yet", "status": "to-be-announced" }
+  ],
+  "disclaimer": "Dates are liable to change. Verify on the official GATE 2027 website before making travel or application decisions."
+}

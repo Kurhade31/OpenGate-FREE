@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Privacy" description="Privacy: no accounts, no tracking by default, local-first student data stays in your browser." canonicalPath="/privacy/">
+  <section class="hero"><div class="wrap"><h1>Privacy</h1><p class="lead">No account. No name, email or password for core content. Your study data stays in this browser; nothing is sent to our servers — there are none.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>What is stored</h3><ul><li>Topic completion, important/revision flags, notes.</li><li>Practice attempts, mock history, mistake notebook.</li><li>Planner, sessions, targets, revision cards, bookmarks.</li></ul><p class="meta">Versioned keys (<code>gf-*</code>, <code>gatefree.v1.*</code>). Corrupted data is ignored safely.</p></div>
+    <div class="card"><h3>Where it is stored</h3><p>Only in your browser's localStorage on your device. It never leaves your device, is never sent to third parties, and is not visible to maintainers or other students.</p></div>
+    <div class="card"><h3>Accounts &amp; analytics</h3><ul><li>No accounts required for any core feature.</li><li>No analytics in the MVP; no third-party trackers or cookies.</li><li>If privacy-respecting aggregate analytics is ever added, this page will be updated first.</li></ul></div>
+    <div class="card"><h3>Export &amp; delete</h3><p>Export everything as JSON or reset it from the <a href="/dashboard/">dashboard</a> (export / import / reset). Clearing browser site data also removes it. Export before switching devices — there is no sync.</p></div>
+  </div></section>
+</Base>

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "ec-ga",
+    "paper": "EC",
+    "name": "General Aptitude",
+    "slug": "general-aptitude",
+    "description": "Verbal and numerical aptitude common to all GATE papers.",
+    "topics": ["verbal-aptitude", "numerical-aptitude", "reasoning"],
+    "sources": []
+  },
+  {
+    "id": "ec-em",
+    "paper": "EC",
+    "name": "Engineering Mathematics",
+    "slug": "engineering-mathematics",
+    "description": "Linear algebra, calculus, differential equations, complex variables, probability.",
+    "topics": ["linear-algebra", "calculus", "differential-equations", "complex-variables", "probability"],
+    "sources": []
+  },
+  {
+    "id": "ec-networks",
+    "paper": "EC",
+    "name": "Networks, Signals and Systems",
+    "slug": "networks-signals-systems",
+    "description": "Circuit analysis, signals, LTI systems, Fourier, Laplace and Z transforms.",
+    "topics": ["circuit-analysis", "signals-classification", "lti-systems", "fourier-laplace-z"],
+    "sources": []
+  },
+  {
+    "id": "ec-edc",
+    "paper": "EC",
+    "name": "Electronic Devices & Analog Circuits",
+    "slug": "electronic-devices-analog",
+    "description": "Diodes, BJTs, MOSFETs, amplifiers, feedback, oscillators, op-amps.",
+    "topics": ["semiconductor-devices", "amplifiers", "feedback-oscillators", "opamps"],
+    "sources": []
+  },
+  {
+    "id": "ec-digital",
+    "paper": "EC",
+    "name": "Digital Circuits",
+    "slug": "digital-circuits",
+    "description": "Boolean algebra, combinational/sequential circuits, converters, microprocessors.",
+    "topics": ["boolean-algebra", "combinational", "sequential", "converters-microprocessors"],
+    "sources": []
+  },
+  {
+    "id": "ec-control",
+    "paper": "EC",
+    "name": "Control Systems",
+    "slug": "control-systems",
+    "description": "Feedback, transfer functions, stability, root locus, Bode, compensators.",
+    "topics": ["modeling", "stability", "root-locus", "frequency-response"],
+    "sources": []
+  },
+  {
+    "id": "ec-comm",
+    "paper": "EC",
+    "name": "Communications",
+    "slug": "communications",
+    "description": "Analog/digital modulation, information theory, random processes, noise.",
+    "topics": ["analog-modulation", "digital-modulation", "information-theory", "noise"],
+    "sources": []
+  },
+  {
+    "id": "ec-emft",
+    "paper": "EC",
+    "name": "Electromagnetics",
+    "slug": "electromagnetics",
+    "description": "Vector calculus, Maxwell equations, transmission lines, waveguides, antennas.",
+    "topics": ["vector-calculus", "maxwell-equations", "transmission-lines", "waveguides-antennas"],
+    "sources": []
+  }
+]

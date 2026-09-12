@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import original from '../../../data/questions/original.json';
+import pyq from '../../../data/questions/pyq.json';
+---
+<Base title="Mock tests" description="Full-length, subject and topic mocks with timer and analysis. Honest counts from the available question bank." canonicalPath="/mock/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Mocks · honest bank counts</p>
+    <h1>Mock tests</h1>
+    <p class="lead">Bank: {(original as unknown[]).length} original + {(pyq as unknown[]).length} PYQ-style = {(original as unknown[]).length + (pyq as unknown[]).length} usable questions. Full mocks use everything available; subject mocks filter the bank. Timed, with palette and review in the test engine.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-3">
+    <div class="card"><h3>Full-length mock</h3><p>All {(original as unknown[]).length + (pyq as unknown[]).length} questions, 60 min, exam mode.</p><p><a class="btn primary small" href="/practice/test/?src=&count=30&time=60">Start full mock →</a></p></div>
+    {[['CS','Computer Science'],['EC','Electronics'],['EE','Electrical'],['ME','Mechanical'],['CE','Civil'],['DA','Data Science']].map(([c, n]) => (
+      <div class="card"><h3>{c} — {n}</h3><p>Subject test from the available {c} bank.</p><p><a class="btn ghost small" href={`/practice/test/?paper=${c}&count=10&time=20`}>Start {c} test →</a></p></div>
+    ))}
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Topic tests</h3><p>Pick any topic from <a href="/syllabus/">syllabus</a> or <a href="/learn/">learn</a>, then open the test engine pre-filtered — e.g. <a href="/practice/test/?topic=normalization&count=5&time=10">normalization</a>, <a href="/practice/test/?topic=cpu-scheduling&count=5&time=10">scheduling</a>.</p></div>
+    <div class="card"><h3>Custom test</h3><p>Choose subject, topics, count, difficulty, type and time in the <a href="/practice/test/">test engine</a>. Results save to your <a href="/dashboard/">dashboard</a> with weak-topic analysis.</p><p class="meta">Mocks labelled platform-original / PYQ-style — never official GATE papers.</p></div>
+  </div></section>
+</Base>

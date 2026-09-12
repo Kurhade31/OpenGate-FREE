@@ -1,0 +1,57 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Revision planner" description="Spaced revision tool: add topics, grade recall (forgot/hard/okay/easy), get next review dates. Local-first." canonicalPath="/tools/revision-planner/">
+  <section class="hero"><div class="wrap"><p class="kicker">Tool · spaced repetition (simple)</p><h1>Revision planner</h1><p class="lead">Add topics, then grade each review. Intervals grow when you remember, shrink to 1 day when you forget. States: new → learning → needs-review → stable / weak / overdue.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><div class="form-grid"><label>New topic<input id="topic" placeholder="e.g. DBMS normalization" /></label><button class="btn primary" id="add">Add topic</button></div></div>
+    <div class="card"><h3>Today</h3><div id="due"></div><p><button class="btn ghost small" id="clearDone">Clear all</button></p></div>
+  </div></section>
+  <section class="section"><div class="wrap"><div class="card"><h3>All cards</h3><div id="all"></div></div></div></section>
+</Base>
+<script>
+  const KEY = 'gatefree.v1.revision';
+  function load() { try { const r = localStorage.getItem(KEY); if (!r) return []; const w = JSON.parse(r); return Array.isArray(w.data) ? w.data : []; } catch { return []; } }
+  function save(cards) { try { localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, data: cards })); } catch {} }
+  function isoPlus(days) { const d = new Date(); d.setUTCHours(0,0,0,0); return new Date(d.getTime() + days*86400000).toISOString().slice(0,10); }
+  function nextInterval(cur, grade) {
+    if (grade === 'forgot') return 1;
+    if (grade === 'hard') return Math.max(1, Math.round(cur*1.2));
+    if (grade === 'okay') return Math.max(2, Math.round((cur||1)*2.2));
+    return Math.max(4, Math.round((cur||1)*3.5));
+  }
+  function render() {
+    const cards = load();
+    const today = new Date().toISOString().slice(0,10);
+    const due = cards.filter((c) => c.dueDate <= today);
+    const dueEl = document.getElementById('due');
+    const allEl = document.getElementById('all');
+    dueEl.innerHTML = due.length ? due.map((c) => `<p><strong>${c.topic}</strong> <span class="meta">${c.state} · interval ${c.intervalDays}d</span><br/>
+      ${['forgot','hard','okay','easy'].map((g) => `<button class="btn ghost small" data-grade="${g}" data-id="${c.id}">${g}</button>`).join(' ')}</p>`).join('')
+      : '<div class="empty">Nothing due. Add topics or come back on due dates.</div>';
+    allEl.innerHTML = cards.length ? `<table><thead><tr><th>Topic</th><th>State</th><th>Interval</th><th>Due</th><th>Streak</th></tr></thead><tbody>${cards.map((c) => `<tr><td>${c.topic}</td><td>${c.state}</td><td>${c.intervalDays}d</td><td>${c.dueDate}</td><td>${c.streak}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No cards yet.</div>';
+  }
+  document.getElementById('add')?.addEventListener('click', () => {
+    const inp = document.getElementById('topic');
+    const v = inp.value.trim();
+    if (!v) return;
+    const cards = load();
+    cards.push({ id: 'c' + Date.now(), topic: v, state: 'new', intervalDays: 1, dueDate: isoPlus(1), streak: 0 });
+    save(cards); inp.value = ''; render();
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement) || !t.dataset.grade) return;
+    const cards = load();
+    const c = cards.find((x) => x.id === t.dataset.id);
+    if (!c) return;
+    const iv = nextInterval(c.intervalDays || 1, t.dataset.grade);
+    c.intervalDays = iv;
+    c.dueDate = isoPlus(iv);
+    c.streak = t.dataset.grade === 'forgot' ? 0 : c.streak + 1;
+    c.state = t.dataset.grade === 'forgot' ? 'weak' : c.streak >= 4 && iv >= 14 ? 'stable' : c.streak >= 2 ? 'learning' : 'needs-review';
+    save(cards); render();
+  });
+  document.getElementById('clearDone')?.addEventListener('click', () => { if (confirm('Delete all revision cards?')) { save([]); render(); } });
+  render();
+</script>

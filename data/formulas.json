@@ -1,0 +1,10 @@
+[
+  { "id": "os-waiting", "paper": "CS", "subject": "Operating Systems", "topic": "cpu-scheduling", "title": "Waiting time", "formula": "Waiting = TAT − Burst; TAT = Completion − Arrival", "note": "Compute completion first, then TAT, then waiting." },
+  { "id": "subnet-hosts", "paper": "CS", "subject": "Computer Networks", "topic": "ip-addressing", "title": "Usable hosts", "formula": "2^(32−n) − 2", "note": "/24→254, /25→126, /26→62, /27→30." },
+  { "id": "carnot", "paper": "ME", "subject": "Thermal Sciences", "topic": "thermodynamics", "title": "Carnot efficiency", "formula": "η = 1 − Tc/Th (Kelvin)", "note": "Temperatures must be absolute." },
+  { "id": "otto", "paper": "ME", "subject": "Thermal Sciences", "topic": "thermodynamics", "title": "Otto efficiency", "formula": "η = 1 − r^(1−γ)", "note": "r = compression ratio." },
+  { "id": "parallel-r", "paper": "EE", "subject": "Networks", "topic": "equivalents", "title": "Two parallel", "formula": "Req = R1·R2/(R1+R2)", "note": "Power: P = V²/R." },
+  { "id": "bibo", "paper": "EC", "subject": "Signals", "topic": "stability", "title": "BIBO stability", "formula": "∫|h(t)|dt < ∞", "note": "Causal rational: poles strictly LHP." },
+  { "id": "f1", "paper": "DA", "subject": "ML", "topic": "evaluation", "title": "F1 score", "formula": "F1 = 2PR/(P+R)", "note": "Use for imbalanced classes, not accuracy alone." },
+  { "id": "bcnf", "paper": "CS", "subject": "DBMS", "topic": "normalization", "title": "Normal-form chain", "formula": "BCNF ⇒ 3NF ⇒ 2NF", "note": "BCNF: every determinant is a superkey." }
+]

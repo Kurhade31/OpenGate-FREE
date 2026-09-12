@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Syllabus explorer" description="Explore GATE syllabus by branch, subject and topic. Track completion, mark important and revision, add notes, jump to learning and practice." canonicalPath="/syllabus/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Syllabus · progress saved locally</p>
+    <h1>Syllabus explorer</h1>
+    <p class="lead">Pick your branch. Expand subjects → topics → subtopics. Check off completion, star important topics, queue revision, and jump straight to learning or practice. No login — progress stays in your browser.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-3">
+    {[['cs','CS','Computer Science & IT'],['ec','EC','Electronics & Communication'],['ee','EE','Electrical'],['me','ME','Mechanical'],['ce','CE','Civil'],['da','DA','Data Science & AI']].map(([slug, code, name]) => (
+      <div class="card"><h3>{code} — {name}</h3><p><a href={`/syllabus/${slug}/`}>Open syllabus →</a> · <a href={`/learn/${slug}/`}>Learn</a></p></div>
+    ))}
+  </div></section>
+  <section class="section"><div class="wrap"><div class="source-box">Syllabus structure is editorial guidance. The authoritative text is the <a href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">official 2027 PDF</a> for your paper.</div></div></section>
+</Base>

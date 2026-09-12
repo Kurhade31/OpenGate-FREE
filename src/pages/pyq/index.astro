@@ -1,0 +1,61 @@
+---
+import Base from '../../layouts/Base.astro';
+import pyq from '../../../data/questions/pyq.json';
+---
+<Base title="PYQ bank" description="Searchable PYQ-style bank by year, paper, subject, topic and type. Answers, community explanations, bookmarks and mistake logging." canonicalPath="/pyq/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">PYQ · {(pyq as unknown[]).length} usable entries · labels, not verbatim copies</p>
+    <h1>PYQ bank</h1>
+    <p class="lead">Filter, search, open, answer-check and bookmark. Each entry is labelled <strong>PYQ-style + community explanation</strong> with an official-archive link — we link to official PDFs rather than republishing them, and never copy coaching banks.</p>
+    <div class="btn-row"><a class="btn primary" href="https://gate2027.iitm.ac.in/" rel="noopener">Official GATE site</a><a class="btn ghost" href="/practice/test/?src=pyq-reference">Attempt PYQs timed →</a></div>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;max-width:none">
+        <label>Paper<select id="yPaper"><option value="">All</option></select></label>
+        <label>Year<select id="yYear"><option value="">All</option></select></label>
+        <label>Type<select id="yType"><option value="">All</option><option>MCQ</option><option>MSQ</option><option>NAT</option></select></label>
+        <label>Search<input id="yQ" type="search" placeholder="e.g. subnet, carnot…" /></label>
+      </div>
+      <p class="meta" id="yCount" role="status"></p>
+      <div id="yList" class="grid" style="margin-top:1rem"></div>
+    </div>
+    <div class="source-box" style="margin-top:1rem">Copyright-safe rule: entries are representative drills with community explanations. For verbatim papers use the <a href="https://gate2027.iitm.ac.in/" rel="noopener">official archive</a> and previous IIT sites; verify paper + year in the PDF header. <a href="/guides/pyq-guide/">PYQ method →</a></div>
+  </div></section>
+</Base>
+<script define:vars={{ items: pyq }}>
+  const list = document.getElementById('yList');
+  const count = document.getElementById('yCount');
+  const fP = document.getElementById('yPaper'), fY = document.getElementById('yYear'), fT = document.getElementById('yType'), fQ = document.getElementById('yQ');
+  const params = new URLSearchParams(location.search);
+  for (const p of [...new Set(items.map((q) => q.paper))].sort()) {
+    const o = document.createElement('option'); o.value = p; o.textContent = p;
+    if ((params.get('paper') ?? '').toUpperCase() === p) o.selected = true;
+    fP.appendChild(o);
+  }
+  for (const y of [...new Set(items.map((q) => q.year))].sort((a, b) => b - a)) {
+    const o = document.createElement('option'); o.value = y; o.textContent = y;
+    fY.appendChild(o);
+  }
+  function render() {
+    const q = (fQ.value ?? '').toLowerCase();
+    const rows = items.filter((x) =>
+      (!fP.value || x.paper === fP.value) && (!fY.value || String(x.year) === fY.value) &&
+      (!fT.value || x.questionType === fT.value) &&
+      (!q || (x.question + ' ' + x.subject + ' ' + x.topic).toLowerCase().includes(q)));
+    count.textContent = `${rows.length} PYQ-style question(s).`;
+    list.innerHTML = '';
+    if (!rows.length) { list.innerHTML = '<div class="empty">No matches. Try clearing year or search. Full official PDFs are linked above.</div>'; return; }
+    for (const x of rows) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `<p><span class="pill">PYQ ${x.year ?? ''}</span> <span class="pill green">${x.paper}</span> <span class="pill amber">${x.questionType} · ${x.marks} mark</span></p>
+        <p style="font-weight:600;color:var(--ink)">${x.question}</p>
+        <p class="meta">${x.subject} · ${x.topic} · community explanation</p>
+        <p><a class="btn primary small" href="/pyq/${x.id}/">Open + attempt →</a> <a class="btn ghost small" href="/practice/test/?q=${x.id}">Timed attempt →</a></p>`;
+      list.appendChild(d);
+    }
+  }
+  [fP, fY, fT, fQ].forEach((el) => el?.addEventListener('input', render));
+  render();
+</script>

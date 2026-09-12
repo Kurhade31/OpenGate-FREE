@@ -1,0 +1,82 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Revision center" description="All revision in one place: queued topics, saved formulas, bookmarked questions, mistakes, checklists and notes." canonicalPath="/revision/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Revision · local-first</p>
+    <h1>Revision center</h1>
+    <p class="lead">Queued from Learn, Syllabus, Practice, PYQ and Dashboard. Grade recall in the <a href="/tools/revision-planner/">planner</a>; review status here.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Topics queued (<span id="rvN">0</span>)</h3><div id="rvTopics"></div></div>
+    <div class="card"><h3>Checklist</h3><div id="rvCheck"></div>
+      <div class="form-grid" style="margin-top:.6rem"><label>Custom note<input id="rvIn" placeholder="e.g. Revise subnet table" /></label><button class="btn primary small" id="rvAdd">Add</button></div>
+    </div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Bookmarked questions</h3><div id="rvSaved"></div><p><a href="/practice/test/">Practice them →</a></p></div>
+    <div class="card"><h3>Open mistakes</h3><div id="rvMis"></div><p><a href="/tools/mistake-tracker/">Notebook →</a></p></div>
+  </div></section>
+</Base>
+<script>
+  const read = (k, f) => { try { const r = localStorage.getItem(k); if (!r) return f; return JSON.parse(r).data ?? f; } catch { return f; } };
+  const write = (k, d) => { try { localStorage.setItem(k, JSON.stringify({ schemaVersion: 1, data: d })); } catch {} };
+  function render() {
+    const rev = read('gf-revision-topics-v1', []);
+    const done = read('gf-topics-v1', {});
+    document.getElementById('rvN').textContent = rev.length;
+    document.getElementById('rvTopics').innerHTML = rev.length
+      ? rev.map((id) => `<p><input type="checkbox" data-done="${id}" ${done[id] === 'completed' ? 'checked' : ''}/> <strong>${id}</strong> <button class="btn ghost small" data-unq="${id}">Remove</button></p>`).join('')
+      : '<div class="empty">Nothing queued. Add from any Learn/Syllabus/Practice page.</div>';
+    const checks = read('gf-revision-check-v1', [
+      { id: 'c1', text: 'Revise 1 weak topic today', done: false },
+      { id: 'c2', text: 'Re-attempt 5 bookmarked questions', done: false },
+      { id: 'c3', text: 'Clear all due revision cards', done: false },
+    ]);
+    document.getElementById('rvCheck').innerHTML = checks.map((c) => `<p><input type="checkbox" data-chk="${c.id}" ${c.done ? 'checked' : ''}/> ${c.text} <button class="btn ghost small" data-cdel="${c.id}">×</button></p>`).join('');
+    window._checks = checks;
+    const saved = read('gf-bookmarks-q-v1', []);
+    document.getElementById('rvSaved').innerHTML = saved.length
+      ? `<ul>${saved.slice(0, 20).map((id) => `<li><a href="/practice/test/?q=${id}">${id}</a></li>`).join('')}</ul>`
+      : '<div class="empty">No saved questions yet.</div>';
+    const mis = read('gf-mistakes-v2', []).filter((m) => !m.reviewed).slice(0, 10);
+    document.getElementById('rvMis').innerHTML = mis.length
+      ? mis.map((m) => `<p><strong>${m.question?.slice(0, 80) ?? m.questionId}</strong><br/><span class="meta">${m.subject} · ${m.topic}</span></p>`).join('')
+      : '<div class="empty">No open mistakes. Nice.</div>';
+  }
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-done')) {
+      const d = read('gf-topics-v1', {});
+      d[t.getAttribute('data-done')] = t.checked ? 'completed' : 'in-progress';
+      write('gf-topics-v1', d); render();
+    }
+    if (t.hasAttribute('data-chk')) {
+      const arr = (window._checks ?? []).map((c) => c.id === t.getAttribute('data-chk') ? { ...c, done: t.checked } : c);
+      write('gf-revision-check-v1', arr); render();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.hasAttribute('data-unq')) {
+      write('gf-revision-topics-v1', read('gf-revision-topics-v1', []).filter((x) => x !== t.getAttribute('data-unq')));
+      render();
+    }
+    if (t.hasAttribute('data-cdel')) {
+      write('gf-revision-check-v1', (window._checks ?? []).filter((c) => c.id !== t.getAttribute('data-cdel')));
+      render();
+    }
+  });
+  document.getElementById('rvAdd')?.addEventListener('click', () => {
+    const v = document.getElementById('rvIn').value.trim();
+    if (!v) return;
+    const arr = read('gf-revision-check-v1', window._checks ?? []);
+    arr.push({ id: 'c' + Date.now().toString(36), text: v, done: false });
+    write('gf-revision-check-v1', arr);
+    document.getElementById('rvIn').value = '';
+    render();
+  });
+  render();
+</script>

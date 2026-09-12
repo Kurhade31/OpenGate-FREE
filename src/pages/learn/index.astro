@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Learn by topic" description="Structured GATE topic maps for CS, EC, EE, ME, CE and DA: subjects, topics, prerequisites, practice and revision checklists." canonicalPath="/learn/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Learn</p>
+    <h1>Topic explorer</h1>
+    <p class="lead">Pick a paper, then a subject, then a topic. Every topic page answers: what it is, why it matters, what to know first, what to learn, what to practice, and what mistakes to avoid.</p>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-3">
+    {[['cs','CS','Computer Science & IT'],['ec','EC','Electronics & Communication'],['ee','EE','Electrical'],['me','ME','Mechanical'],['ce','CE','Civil'],['da','DA','Data Science & AI']].map(([slug, code, name]) => (
+      <div class="card"><h3>{code} — {name}</h3><p><a href={`/learn/${slug}/`}>Open topic map →</a></p></div>
+    ))}
+  </div></section>
+</Base>

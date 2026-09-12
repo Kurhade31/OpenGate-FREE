@@ -1,0 +1,101 @@
+[
+  {
+    "id": "cs-ga",
+    "paper": "CS",
+    "name": "General Aptitude",
+    "slug": "general-aptitude",
+    "description": "Verbal and numerical aptitude common to all GATE papers. High return on effort; practice regularly.",
+    "topics": ["verbal-aptitude", "numerical-aptitude", "logical-reasoning", "data-interpretation"],
+    "sources": []
+  },
+  {
+    "id": "cs-em",
+    "paper": "CS",
+    "name": "Engineering Mathematics",
+    "slug": "engineering-mathematics",
+    "description": "Discrete mathematics, linear algebra, calculus, probability and statistics for GATE CS.",
+    "topics": ["discrete-mathematics", "linear-algebra", "calculus", "probability-statistics", "graph-theory", "combinatorics"],
+    "sources": []
+  },
+  {
+    "id": "cs-dl",
+    "paper": "CS",
+    "name": "Digital Logic",
+    "slug": "digital-logic",
+    "description": "Boolean algebra, combinational and sequential circuits, number systems.",
+    "topics": ["boolean-algebra", "combinational-circuits", "sequential-circuits", "number-systems"],
+    "sources": []
+  },
+  {
+    "id": "cs-coa",
+    "paper": "CS",
+    "name": "Computer Organization and Architecture",
+    "slug": "computer-organization",
+    "description": "Machine instructions, ALU, datapath, control, memory hierarchy, pipelining, I/O.",
+    "topics": ["machine-instructions", "alu-datapath", "control-unit", "memory-hierarchy", "pipelining", "io-organization"],
+    "sources": []
+  },
+  {
+    "id": "cs-pds",
+    "paper": "CS",
+    "name": "Programming and Data Structures",
+    "slug": "programming-data-structures",
+    "description": "C programming, recursion, arrays, stacks, queues, linked lists, trees, heaps, graphs.",
+    "topics": ["c-programming", "recursion", "arrays-stacks-queues", "linked-lists", "trees-heaps", "graphs-basics"],
+    "sources": []
+  },
+  {
+    "id": "cs-algo",
+    "paper": "CS",
+    "name": "Algorithms",
+    "slug": "algorithms",
+    "description": "Asymptotic analysis, divide and conquer, greedy, dynamic programming, graph algorithms.",
+    "topics": ["complexity-analysis", "divide-conquer", "greedy", "dynamic-programming", "graph-algorithms", "sorting-searching"],
+    "sources": []
+  },
+  {
+    "id": "cs-toc",
+    "paper": "CS",
+    "name": "Theory of Computation",
+    "slug": "theory-of-computation",
+    "description": "Regular languages, context-free languages, Turing machines, decidability.",
+    "topics": ["regular-languages", "context-free-languages", "turing-machines", "decidability-complexity"],
+    "sources": []
+  },
+  {
+    "id": "cs-compiler",
+    "paper": "CS",
+    "name": "Compiler Design",
+    "slug": "compiler-design",
+    "description": "Lexical analysis, parsing, syntax-directed translation, code generation.",
+    "topics": ["lexical-analysis", "parsing", "sdt", "runtime-codegen"],
+    "sources": []
+  },
+  {
+    "id": "cs-os",
+    "paper": "CS",
+    "name": "Operating Systems",
+    "slug": "operating-systems",
+    "description": "Processes, threads, scheduling, synchronization, deadlocks, memory and file systems.",
+    "topics": ["processes-threads", "cpu-scheduling", "synchronization", "deadlocks", "memory-management", "file-systems"],
+    "sources": []
+  },
+  {
+    "id": "cs-dbms",
+    "paper": "CS",
+    "name": "Databases (DBMS)",
+    "slug": "dbms",
+    "description": "ER model, relational algebra, SQL, normalization, transactions, indexing.",
+    "topics": ["er-model", "relational-algebra-sql", "normalization", "transactions-concurrency", "indexing"],
+    "sources": []
+  },
+  {
+    "id": "cs-cn",
+    "paper": "CS",
+    "name": "Computer Networks",
+    "slug": "computer-networks",
+    "description": "OSI/TCP-IP, routing, congestion, IP addressing, TCP/UDP, application protocols.",
+    "topics": ["osi-tcpip", "routing-switching", "congestion-flow", "ip-addressing", "tcp-udp", "application-layer"],
+    "sources": []
+  }
+]

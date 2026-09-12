@@ -1,0 +1,8 @@
+---
+import Base from '../../layouts/Base.astro';
+import changelog from '../../../data/changelog.json';
+---
+<Base title="Changelog" description="Versioned changes to official data, content and tools." canonicalPath="/changelog/">
+  <section class="hero"><div class="wrap"><h1>Changelog</h1><p class="lead">Official-data changes always record old → new + source.</p></div></section>
+  <section class="section"><div class="wrap">{changelog.map((c) => (<div class="card" style="margin-bottom:1rem"><h3>{c.date}</h3><ul>{c.changes.map((x) => (<li>{x}</li>))}</ul></div>))}</div></section>
+</Base>

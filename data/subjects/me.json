@@ -1,0 +1,47 @@
+[
+  {
+    "id": "me-ga",
+    "paper": "ME",
+    "name": "General Aptitude",
+    "slug": "general-aptitude",
+    "description": "Verbal and numerical aptitude common to all GATE papers.",
+    "topics": ["verbal-aptitude", "numerical-aptitude", "reasoning"],
+    "sources": []
+  },
+  {
+    "id": "me-em",
+    "paper": "ME",
+    "name": "Engineering Mathematics",
+    "slug": "engineering-mathematics",
+    "description": "Linear algebra, calculus, differential equations, complex variables, statistics.",
+    "topics": ["linear-algebra", "calculus", "differential-equations", "complex-variables", "statistics"],
+    "sources": []
+  },
+  {
+    "id": "me-mech",
+    "paper": "ME",
+    "name": "Applied Mechanics & Design",
+    "slug": "mechanics-design",
+    "description": "Strength of materials, theory of machines, vibrations, machine design.",
+    "topics": ["strength-of-materials", "theory-of-machines", "vibrations", "machine-design"],
+    "sources": []
+  },
+  {
+    "id": "me-fluid",
+    "paper": "ME",
+    "name": "Fluid Mechanics & Thermal Sciences",
+    "slug": "fluid-thermal",
+    "description": "Fluid mechanics, heat transfer, thermodynamics, RAC, IC engines, power plant.",
+    "topics": ["fluid-mechanics", "heat-transfer", "thermodynamics", "rac-ic-engines"],
+    "sources": []
+  },
+  {
+    "id": "me-manu",
+    "paper": "ME",
+    "name": "Materials, Manufacturing & Industrial",
+    "slug": "manufacturing",
+    "description": "Materials, casting, forming, machining, metrology, OR, operations.",
+    "topics": ["materials", "casting-forming", "machining", "metrology", "operations-research"],
+    "sources": []
+  }
+]

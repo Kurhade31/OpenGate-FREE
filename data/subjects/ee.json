@@ -1,0 +1,74 @@
+[
+  {
+    "id": "ee-ga",
+    "paper": "EE",
+    "name": "General Aptitude",
+    "slug": "general-aptitude",
+    "description": "Verbal and numerical aptitude common to all GATE papers.",
+    "topics": ["verbal-aptitude", "numerical-aptitude", "reasoning"],
+    "sources": []
+  },
+  {
+    "id": "ee-em",
+    "paper": "EE",
+    "name": "Engineering Mathematics",
+    "slug": "engineering-mathematics",
+    "description": "Linear algebra, calculus, differential equations, complex variables, probability.",
+    "topics": ["linear-algebra", "calculus", "differential-equations", "complex-variables", "probability"],
+    "sources": []
+  },
+  {
+    "id": "ee-networks",
+    "paper": "EE",
+    "name": "Electric Circuits & Networks",
+    "slug": "network-theory",
+    "description": "KCL/KVL, theorems, transient and steady-state analysis, two-port networks.",
+    "topics": ["kcl-kvl-theorems", "transients", "steady-state-ac", "two-port"],
+    "sources": []
+  },
+  {
+    "id": "ee-machines",
+    "paper": "EE",
+    "name": "Electrical Machines",
+    "slug": "electrical-machines",
+    "description": "Transformers, DC machines, induction machines, synchronous machines.",
+    "topics": ["transformers", "dc-machines", "induction-machines", "synchronous-machines"],
+    "sources": []
+  },
+  {
+    "id": "ee-power",
+    "paper": "EE",
+    "name": "Power Systems",
+    "slug": "power-systems",
+    "description": "Generation, transmission, distribution, fault analysis, protection, stability.",
+    "topics": ["transmission", "fault-analysis", "protection", "stability-loadflow"],
+    "sources": []
+  },
+  {
+    "id": "ee-control",
+    "paper": "EE",
+    "name": "Control Systems",
+    "slug": "control-systems",
+    "description": "Modeling, block diagrams, stability, root locus, Bode, state-space.",
+    "topics": ["modeling", "stability", "root-locus", "frequency-response", "state-space"],
+    "sources": []
+  },
+  {
+    "id": "ee-pe",
+    "paper": "EE",
+    "name": "Power Electronics & Drives",
+    "slug": "power-electronics",
+    "description": "Converters, choppers, inverters, drives and control.",
+    "topics": ["converters", "choppers", "inverters", "drives"],
+    "sources": []
+  },
+  {
+    "id": "ee-measure",
+    "paper": "EE",
+    "name": "Measurements & Instrumentation",
+    "slug": "measurements",
+    "description": "Error analysis, bridges, transducers, digital instruments.",
+    "topics": ["error-analysis", "bridges", "transducers", "digital-instruments"],
+    "sources": []
+  }
+]

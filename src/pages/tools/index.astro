@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Study tools" description="Free local-first GATE tools: planner, revision, mistakes, mock analysis, calculator, converter, pomodoro, formulas, marks. No account." canonicalPath="/tools/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Tools · local-first</p>
+    <h1>Study tools</h1>
+    <p class="lead">No login. Planner, attempts, mistakes and revision stay in your browser with export / import / reset. Every card below opens a working tool.</p>
+    <div class="btn-row"><a class="btn primary" href="/dashboard/">Dashboard →</a><a class="btn ghost" href="/revision/">Revision center →</a><a class="btn ghost" href="/practice/test/">Test engine →</a></div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h3>Study planner</h3><p>Start + target dates, hours, subjects → sessions with check-off.</p><p><a href="/tools/study-planner/">Open →</a></p></div>
+    <div class="card"><h3>Revision planner</h3><p>Grade recall; spaced next-review dates.</p><p><a href="/tools/revision-planner/">Open →</a></p></div>
+    <div class="card"><h3>Mistake notebook</h3><p>Subject/topic/reason/notes, filters, reattempt, understood.</p><p><a href="/tools/mistake-tracker/">Open →</a></p></div>
+    <div class="card"><h3>Mock analyser</h3><p>Paste CSV results → score, topic and time analysis.</p><p><a href="/tools/mock-analyzer/">Open →</a></p></div>
+    <div class="card"><h3>Scientific calculator</h3><p>Safe parser: powers, roots, trig (deg), logs.</p><p><a href="/tools/calculator/">Open →</a></p></div>
+    <div class="card"><h3>Unit converter</h3><p>Length, mass, temp, pressure, energy, power.</p><p><a href="/tools/unit-converter/">Open →</a></p></div>
+    <div class="card"><h3>Percentage calculator</h3><p>Percent-of, change, successive discounts.</p><p><a href="/tools/percentage/">Open →</a></p></div>
+    <div class="card"><h3>Pomodoro + sessions</h3><p>Focus timer with local session log.</p><p><a href="/tools/pomodoro/">Open →</a></p></div>
+    <div class="card"><h3>Formula reference</h3><p>Searchable sheet; save to revision.</p><p><a href="/tools/formula-reference/">Open →</a></p></div>
+    <div class="card"><h3>Random practice</h3><p>One-click drill from the full bank.</p><p><a href="/tools/random-practice/">Open →</a></p></div>
+    <div class="card"><h3>Marks calculator</h3><p>GATE-style totals with MCQ negative marking.</p><p><a href="/tools/marks-calculator/">Open →</a></p></div>
+  </div></section>
+  <section class="section"><div class="wrap"><div class="card"><h3>Your data</h3><p class="meta">Tools read/write keys <code>gatefree.v1.*</code> in localStorage. Corrupted data is ignored safely; use Export before clearing browser data.</p><p><button class="btn ghost small" id="exportAll">Export all data (JSON)</button> <button class="btn ghost small" id="resetAll">Reset all local data</button></p><pre id="exportOut" hidden></pre></div></div></section>
+</Base>
+<script>
+  // local-first export, no imports needed
+  document.getElementById('exportAll')?.addEventListener('click', () => {
+    const keys = ['planner','attempts','mistakes','bookmarks','revision'];
+    const bundle = {};
+    for (const k of keys) {
+      try {
+        const raw = localStorage.getItem('gatefree.v1.' + k);
+        bundle[k] = raw ? JSON.parse(raw).data : null;
+      } catch { bundle[k] = null; }
+    }
+    const full = { schemaVersion: 1, exportedAt: new Date().toISOString(), ...bundle };
+    const out = document.getElementById('exportOut');
+    if (out) {
+      out.hidden = false;
+      out.textContent = JSON.stringify(full, null, 2);
+    }
+    const blob = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gatefree-backup.json';
+    a.click();
+  });
+  document.getElementById('resetAll')?.addEventListener('click', () => {
+    if (!confirm('Delete all local GATE Free data in this browser?')) return;
+    for (const k of ['planner','attempts','mistakes','bookmarks','revision']) {
+      try { localStorage.removeItem('gatefree.v1.' + k); } catch {}
+    }
+    alert('Local data cleared.');
+  });
+</script>

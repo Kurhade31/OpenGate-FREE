@@ -1,0 +1,114 @@
+---
+import Base from '../../layouts/Base.astro';
+import questions from '../../../data/questions/original.json';
+---
+<Base title="Practice questions" description="Free GATE practice: filter original questions by paper, subject and difficulty. Explanations included, progress saved locally." canonicalPath="/practice/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">Practice · original questions · no login</p>
+    <h1>Practice engine</h1>
+    <p class="lead">Filter {questions.length} original practice questions by paper and difficulty. Answer, reveal the explanation, retry, and track accuracy in your browser. For timed tests with palette, MSQ/NAT scoring and analysis, use the <a href="/practice/test/">test engine</a> or <a href="/mock/">mocks</a>.</p>
+    <div class="btn-row"><a class="btn primary" href="/practice/test/">Open test engine →</a><a class="btn ghost" href="/mock/">Mock tests →</a><a class="btn ghost" href="/pyq/">PYQ →</a></div>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:none">
+        <label>Paper<select id="fPaper"><option value="">All papers</option></select></label>
+        <label>Difficulty<select id="fDiff"><option value="">All levels</option><option>easy</option><option>medium</option><option>hard</option></select></label>
+        <label>Type<select id="fType"><option value="">All types</option><option>MCQ</option><option>MSQ</option><option>NAT</option></select></label>
+      </div>
+      <p class="meta" id="count"></p>
+      <div id="qlist" class="grid" style="margin-top:1rem"></div>
+    </div>
+    <p style="margin-top:1rem"><a href="/pyq/">PYQ navigation →</a> · <a href="/tools/mistake-tracker/">Log mistakes →</a></p>
+  </div></section>
+</Base>
+<script define:vars={{ questions }}>
+  const list = document.getElementById('qlist');
+  const count = document.getElementById('count');
+  const fPaper = document.getElementById('fPaper');
+  const fDiff = document.getElementById('fDiff');
+  const fType = document.getElementById('fType');
+  const params = new URLSearchParams(location.search);
+  const papers = [...new Set(questions.map((q) => q.paper))].sort();
+  for (const p of papers) {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if ((params.get('paper') ?? '').toUpperCase() === p) o.selected = true;
+    fPaper.appendChild(o);
+  }
+  const subj = params.get('subject');
+  function render() {
+    const pf = fPaper.value, df = fDiff.value, tf = fType.value;
+    const rows = questions.filter((q) =>
+      (!pf || q.paper === pf) && (!df || q.difficulty === df) && (!tf || q.questionType === tf) &&
+      (!subj || q.subject.toLowerCase().includes(subj.toLowerCase())));
+    count.textContent = `${rows.length} question${rows.length === 1 ? '' : 's'}${subj ? ` matching “${subj}”` : ''}. Attempts are stored locally.`;
+    list.innerHTML = '';
+    if (!rows.length) { list.innerHTML = '<div class="empty">No questions match. Clear filters or contribute one.</div>'; return; }
+    for (const q of rows) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<p><span class="pill">${q.paper}</span> <span class="pill green">${q.difficulty}</span> <span class="pill amber">${q.questionType} · ${q.marks} mark</span></p>
+        <p style="color:var(--ink);font-weight:600">${q.question}</p>
+        ${q.options?.length ? `<div style="display:grid;gap:.4rem">${q.options.map((o) => `<button class="btn ghost small opt" data-q="${q.id}" data-o="${o.replace(/"/g, '&quot;')}">${o}</button>`).join('')}</div>`
+        : `<div style="display:flex;gap:.5rem"><input placeholder="Your answer" aria-label="Your answer" data-nat="${q.id}" /><button class="btn primary small" data-check="${q.id}">Check</button></div>`}
+        <div class="meta" data-exp="${q.id}" hidden><strong>Answer:</strong> ${q.answer}<br/>${q.explanation}<br/><span class="meta">Topic: ${q.topic} · Concepts: ${(q.concepts ?? []).join(', ')}</span></div>
+        <p style="margin-top:.6rem"><button class="btn ghost small" data-reveal="${q.id}">Reveal explanation</button> <button class="btn ghost small" data-bookmark="${q.id}">Bookmark</button></p>`;
+      list.appendChild(card);
+    }
+  }
+  function record(id, correct) {
+    try {
+      const raw = localStorage.getItem('gatefree.v1.attempts');
+      const wrap = raw ? JSON.parse(raw) : { data: [] };
+      const arr = Array.isArray(wrap.data) ? wrap.data : [];
+      arr.push({ id, correct, at: new Date().toISOString() });
+      localStorage.setItem('gatefree.v1.attempts', JSON.stringify({ schemaVersion: 1, data: arr.slice(-500) }));
+    } catch {}
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.dataset.opt !== undefined || t.classList.contains('opt')) {
+      const id = t.getAttribute('data-q');
+      const val = t.getAttribute('data-o');
+      const q = questions.find((x) => x.id === id);
+      if (!q) return;
+      const ok = (val ?? '').trim().toLowerCase() === q.answer.trim().toLowerCase();
+      record(id, ok);
+      t.style.borderColor = ok ? 'green' : 'red';
+      const exp = document.querySelector(`[data-exp="${id}"]`);
+      if (exp) exp.hidden = false;
+    }
+    if (t.dataset.reveal) {
+      const exp = document.querySelector(`[data-exp="${t.dataset.reveal}"]`);
+      if (exp) exp.hidden = !exp.hidden;
+    }
+    if (t.dataset.check) {
+      const id = t.dataset.check;
+      const q = questions.find((x) => x.id === id);
+      const inp = document.querySelector(`[data-nat="${id}"]`);
+      if (q && inp instanceof HTMLInputElement) {
+        const ok = inp.value.trim().toLowerCase() === q.answer.trim().toLowerCase();
+        record(id, ok);
+        inp.style.borderColor = ok ? 'green' : 'red';
+        const exp = document.querySelector(`[data-exp="${id}"]`);
+        if (exp) exp.hidden = false;
+      }
+    }
+    if (t.dataset.bookmark) {
+      try {
+        const raw = localStorage.getItem('gatefree.v1.bookmarks');
+        const wrap = raw ? JSON.parse(raw) : { data: [] };
+        const arr = Array.isArray(wrap.data) ? wrap.data : [];
+        if (!arr.includes(t.dataset.bookmark)) arr.push(t.dataset.bookmark);
+        localStorage.setItem('gatefree.v1.bookmarks', JSON.stringify({ schemaVersion: 1, data: arr }));
+        t.textContent = 'Bookmarked ✓';
+      } catch {}
+    }
+  });
+  fPaper.addEventListener('change', render);
+  fDiff.addEventListener('change', render);
+  fType.addEventListener('change', render);
+  render();
+</script>

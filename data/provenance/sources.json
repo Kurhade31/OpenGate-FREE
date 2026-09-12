@@ -1,0 +1,6 @@
+[
+  { "id": "gate-2027-home", "url": "https://gate2027.iitm.ac.in/", "authority": "official", "checkedAt": "2026-09-11", "checkedBy": "maintainer", "notes": "Official GATE 2027 website (IIT Madras)" },
+  { "id": "gate-2027-syllabus", "url": "https://gate2027.iitm.ac.in/exam_papers_and_syllabus", "authority": "official", "checkedAt": "2026-09-11", "checkedBy": "maintainer", "notes": "Official papers + revised syllabi, 30 test papers, RA new" },
+  { "id": "gate-2027-dates", "url": "https://gate2027.iitm.ac.in/important_dates", "authority": "official", "checkedAt": "2026-09-11", "checkedBy": "maintainer", "notes": "Official important dates" },
+  { "id": "gate-2027-notifications", "url": "https://gate2027.iitm.ac.in/notifications", "authority": "official", "checkedAt": "2026-09-11", "checkedBy": "maintainer", "notes": "Official notifications" }
+]

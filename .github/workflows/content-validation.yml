@@ -1,0 +1,20 @@
+name: Content validation
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run validate:data
+      - run: npm run validate:sources
+      - run: npm run check:links

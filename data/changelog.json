@@ -1,0 +1,4 @@
+[
+  { "date": "2026-09-12", "changes": ["Functional launch: syllabus explorer, topic lessons, test engine (MCQ/MSQ/NAT, timer, palette, analysis), mock center, PYQ bank + detail pages, dashboard, revision center, upgraded mistake notebook and planner, 7 new tools, search suggestions, resource filters", "Bank: 15 original + 10 PYQ-style with source labels; 8 topic lessons; formula sheet", "Design preserved; all data local-first; TBA dates shown honestly"] },
+  { "date": "2026-09-12", "changes": ["Initial P0+P1 MVP: home, GATE 2027 hub, official info, syllabus, papers, dates, guides, resources, search, practice, PYQ browser, study/revision/mistake tools", "GATE 2027 official data versioned with source + last-verified", "CI, content validation, link check, Cloudflare Pages deployment config"] }
+]

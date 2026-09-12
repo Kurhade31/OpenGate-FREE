@@ -1,0 +1,30 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="GATE marks calculator" description="Estimate GATE-style scores: MCQ negative marking, MSQ/NAT rules, mock totals and accuracy." canonicalPath="/tools/marks-calculator/">
+  <section class="hero"><div class="wrap"><p class="kicker">Calculator</p><h1>Marks calculator</h1><p class="lead">MCQ: −1/3 (1-mark), −2/3 (2-mark). MSQ/NAT: no negative. Unattempted: 0.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><div class="form-grid">
+      <label>1-mark MCQ correct<input id="a1" type="number" value="10" min="0" /></label>
+      <label>1-mark MCQ wrong<input id="a2" type="number" value="3" min="0" /></label>
+      <label>2-mark MCQ correct<input id="a3" type="number" value="5" min="0" /></label>
+      <label>2-mark MCQ wrong<input id="a4" type="number" value="2" min="0" /></label>
+      <label>MSQ/NAT correct marks (total)<input id="a5" type="number" value="8" min="0" /></label>
+      <div class="btn-row"><button class="btn primary" id="aGo">Calculate</button><button class="btn ghost" id="aClr">Reset</button></div>
+      <p class="meta" id="aErr" role="alert"></p>
+    </div></div>
+    <div class="card"><h3>Estimated score</h3><p id="aOut" style="font-size:1.8rem;font-weight:800" role="status">—</p><p class="meta" id="aBreak"></p><p class="meta">Estimate only — not a rank predictor. Verify marking in the official brochure for your edition.</p></div>
+  </div></section>
+</Base>
+<script>
+  document.getElementById('aGo').addEventListener('click', () => {
+    const g = (id) => Number(document.getElementById(id).value);
+    const [c1, w1, c2, w2, other] = [g('a1'), g('a2'), g('a3'), g('a4'), g('a5')];
+    if ([c1, w1, c2, w2, other].some((v) => !Number.isFinite(v) || v < 0)) { document.getElementById('aErr').textContent = 'Enter non-negative numbers.'; return; }
+    document.getElementById('aErr').textContent = '';
+    const score = c1 * 1 - w1 * (1/3) + c2 * 2 - w2 * (2/3) + other;
+    document.getElementById('aOut').textContent = `${Math.round(score * 100) / 100} / 100`;
+    document.getElementById('aBreak').textContent = `1-mark MCQ: +${c1} −${Math.round(w1/3*100)/100} · 2-mark MCQ: +${c2*2} −${Math.round(w2*2/3*100)/100} · MSQ/NAT: +${other}`;
+  });
+  document.getElementById('aClr').addEventListener('click', () => { ['a1','a2','a3','a4','a5'].forEach((id) => document.getElementById(id).value = '0'); document.getElementById('aOut').textContent = '—'; });
+</script>

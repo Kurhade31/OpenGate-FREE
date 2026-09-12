@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+import exam from '../../data/gate/2027/exam.json';
+import papers from '../../data/gate/2027/papers.json';
+
+const featured = papers.filter((p) => ['CS','EC','EE','ME','CE','DA'].includes(p.code));
+---
+<Base
+  title="Free GATE 2027 preparation platform"
+  description="Free, open-source GATE 2027 hub: official dates, syllabus, papers, beginner guides, PYQ navigation, practice and local-first study tools. No login required."
+  canonicalPath="/"
+  structuredData={{
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'GATE Free Platform',
+    url: 'https://gate-free-platform.pages.dev/',
+    description: 'Free, open-source GATE 2027 preparation platform.',
+    potentialAction: { '@type': 'SearchAction', target: 'https://gate-free-platform.pages.dev/search/?q={query}', 'query-input': 'required name=query' },
+  }}
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="badges">
+        <span class="badge free">100% free core</span>
+        <span class="badge">Open source</span>
+        <span class="badge official">Official sources cited</span>
+        <span class="badge">No login needed</span>
+      </div>
+      <h1>Free GATE 2027 preparation, built openly for students.</h1>
+      <p class="lead">Official information, structured learning paths, original practice questions, PYQ navigation and local-first study tools — without coaching fees, subscriptions or signup walls.</p>
+      <form action="/search/" method="get" role="search" aria-label="Site search" style="display:flex;gap:.5rem;max-width:560px;margin:1rem 0">
+        <label class="meta" for="q" style="position:absolute;left:-9999px">Search topics, papers, guides</label>
+        <input id="q" name="q" type="search" placeholder="Try: DBMS normalization, GATE 2027 dates, OS scheduling…" autocomplete="off" />
+        <button class="btn primary" type="submit">Search</button>
+      </form>
+      <div class="btn-row">
+        <a class="btn primary" href="/gate-2027/">Start with GATE 2027 hub</a>
+        <a class="btn ghost" href="/gate-2027/syllabus/">Browse syllabus</a>
+        <a class="btn ghost" href="/practice/">Practice now</a>
+      </div>
+      <p class="meta" style="margin-top:1rem">Official baseline: GATE 2027 organised by {exam.organizingInstitute}. Data last verified {exam.lastVerified}. <a href="/gate-2027/official/">Verify sources</a>.</p>
+    </div>
+  </section>
+
+  <section class="section"><div class="wrap">
+    <p class="kicker">Official status</p>
+    <h2>Current GATE 2027 status</h2>
+    <div class="grid cols-3">
+      <div class="card"><h3>Registration</h3><p>GOAPS opens {exam.importantDates.registrationOpen}. Regular close {exam.importantDates.regularRegistrationClose}; extended close {exam.importantDates.extendedRegistrationClose}.</p><p><a href="/gate-2027/important-dates/">All dates + sources</a></p></div>
+      <div class="card"><h3>Exams</h3><p>{exam.importantDates.examWindows.join(' · ')}. Results {exam.importantDates.resultDate}.</p><p><a href="/gate-2027/exam-pattern/">Exam pattern</a></p></div>
+      <div class="card"><h3>Papers</h3><p>30 test papers in GATE 2027, including new Robotics &amp; Automation (RA). Syllabi revised — use edition PDFs.</p><p><a href="/gate-2027/papers/">Paper directory</a></p></div>
+    </div>
+    <div class="source-box" style="margin-top:1rem">Source: <a href="https://gate2027.iitm.ac.in/" rel="noopener">gate2027.iitm.ac.in</a> · Last verified {exam.lastVerified} · Dates may change; verify before acting.</div>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <p class="kicker">Choose your paper</p>
+    <h2>Popular papers</h2>
+    <div class="grid cols-3">
+      {featured.map((p) => (
+        <div class="card">
+          <h3>{p.code} — {p.name}</h3>
+          <p><a href={`/gate-2027/papers/${p.code.toLowerCase()}/`}>Paper overview</a> · <a href={`/learn/${p.code.toLowerCase()}/`}>Learn</a> · <a href={`/practice/?paper=${p.code}`}>Practice</a></p>
+        </div>
+      ))}
+    </div>
+    <p><a href="/gate-2027/papers/">All 30 papers →</a></p>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <p class="kicker">Start here</p>
+    <h2>New to GATE? Follow this path</h2>
+    <div class="grid cols-2">
+      <div class="card"><h3>1. Understand the exam</h3><p>What GATE is, who runs it, what each paper covers, and what the 100-mark structure means.</p><p><a href="/gate-2027/">GATE 2027 hub</a> · <a href="/gate-2027/eligibility/">Eligibility</a> · <a href="/gate-2027/application/">Application guide</a></p></div>
+      <div class="card"><h3>2. Pick a paper + syllabus</h3><p>Choose one paper, download its revised syllabus PDF, and list subjects by weight and confidence.</p><p><a href="/gate-2027/syllabus/">Syllabus guide</a></p></div>
+      <div class="card"><h3>3. Learn topic by topic</h3><p>Each topic: what it is, why it matters, prerequisites, core ideas, mistakes, practice.</p><p><a href="/learn/">Topic explorer</a></p></div>
+      <div class="card"><h3>4. Practice + revise</h3><p>Original practice questions, PYQ navigation, mistake tracker and spaced revision — all saved in your browser.</p><p><a href="/tools/">Study tools</a></p></div>
+    </div>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <p class="kicker">Tools</p>
+    <h2>Local-first tools (no account)</h2>
+    <div class="grid cols-3">
+      <div class="card"><h3>Study planner</h3><p>Exam date + hours + subjects → weekly allocation with revision and mocks.</p><p><a href="/tools/study-planner/">Plan →</a></p></div>
+      <div class="card"><h3>Revision planner</h3><p>Grade recall (forgot / hard / okay / easy); get next review dates.</p><p><a href="/tools/revision-planner/">Revise →</a></p></div>
+      <div class="card"><h3>Mistake tracker</h3><p>Classify errors, record the correct idea, export your log.</p><p><a href="/tools/mistake-tracker/">Track →</a></p></div>
+    </div>
+  </div></section>
+
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h2>Why this exists</h2><p>A student should arrive with only a search query and leave with a clear next step — without paying for coaching or creating an account. Official facts are sourced, uncertainty is labelled, and every page tells you what to do next.</p><p><a href="/about/">About + disclaimer</a></p></div>
+    <div class="card"><h2>Open source</h2><p>Code, content and data are version-controlled. Report errors, suggest resources, contribute questions or fixes.</p><p><a href="/contribute/">Contribute</a> · <a href="/report-error/">Report an error</a> · <a href="/changelog/">Changelog</a></p></div>
+  </div></section>
+</Base>

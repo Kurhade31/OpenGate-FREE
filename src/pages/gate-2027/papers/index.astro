@@ -1,0 +1,22 @@
+---
+import Base from '../../../layouts/Base.astro';
+import papers from '../../../../data/gate/2027/papers.json';
+---
+<Base title="GATE 2027 papers — all 30 test papers" description="Complete GATE 2027 paper directory: all 30 test papers including new RA (Robotics & Automation), with per-paper overviews." canonicalPath="/gate-2027/papers/">
+  <section class="hero"><div class="wrap">
+    <p class="kicker">30 papers · source: official</p>
+    <h1>GATE 2027 papers</h1>
+    <p class="lead">Generated from versioned data (<code>data/gate/2027/papers.json</code>), so future editions are easy to maintain. Start with your paper's overview, then open its topic map.</p>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <div class="grid cols-3">
+      {papers.map((p) => (
+        <div class="card">
+          <h3>{p.code} — {p.name}</h3>
+          <p><a href={`/gate-2027/papers/${p.code.toLowerCase()}/`}>Overview →</a></p>
+        </div>
+      ))}
+    </div>
+    <div class="source-box" style="margin-top:1rem">Source: <a href="https://gate2027.iitm.ac.in/exam_papers_and_syllabus" rel="noopener">official papers &amp; syllabus</a> · Last verified 2026-09-11.</div>
+  </div></section>
+</Base>

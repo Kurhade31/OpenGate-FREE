@@ -1,0 +1,99 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Scientific calculator" description="Free scientific calculator: arithmetic, powers, roots, trig, logs. Validated, mobile-friendly, no login." canonicalPath="/tools/calculator/">
+  <section class="hero"><div class="wrap"><p class="kicker">Tool</p><h1>Scientific calculator</h1><p class="lead">Safe parser (no eval). Degrees for trig. Use for practice arithmetic — the exam uses its own virtual calculator; verify rules in the brochure.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><div class="form-grid"><label>Expression<input id="cIn" placeholder="e.g. (2+3)*sqrt(16) + sin(30)" /></label>
+      <p class="meta">Functions: sqrt, cbrt, pow(a,b), sin, cos, tan, asin, acos, atan, log (base10), ln, exp, abs, pi, e. Operators: + − * / ^ % ( )</p>
+      <div class="btn-row"><button class="btn primary" id="cGo">Calculate</button><button class="btn ghost" id="cClr">Reset</button></div>
+      <p class="meta" id="cErr" role="alert"></p></div></div>
+    <div class="card"><h3>Result</h3><p id="cOut" style="font-size:1.6rem;font-weight:800" role="status">—</p><p class="meta">History (this session):</p><ul id="cHist" class="meta"></ul></div>
+  </div></section>
+</Base>
+<script>
+  const fns = {
+    sqrt: (x) => { if (x < 0) throw new Error('sqrt of negative'); return Math.sqrt(x); },
+    cbrt: (x) => Math.cbrt(x),
+    pow: (a, b) => Math.pow(a, b),
+    sin: (d) => Math.sin(d * Math.PI / 180),
+    cos: (d) => Math.cos(d * Math.PI / 180),
+    tan: (d) => Math.tan(d * Math.PI / 180),
+    asin: (x) => Math.asin(x) * 180 / Math.PI,
+    acos: (x) => Math.acos(x) * 180 / Math.PI,
+    atan: (x) => Math.atan(x) * 180 / Math.PI,
+    log: (x) => { if (x <= 0) throw new Error('log of non-positive'); return Math.log10(x); },
+    ln: (x) => { if (x <= 0) throw new Error('ln of non-positive'); return Math.log(x); },
+    exp: (x) => Math.exp(x),
+    abs: (x) => Math.abs(x),
+  };
+  const consts = { pi: Math.PI, e: Math.E };
+  function tokenize(s) {
+    const re = /\s*([A-Za-z_][A-Za-z0-9_]*|\d*\.?\d+(?:e[+-]?\d+)?|[\+\-\*\/\^\%\(\),])/g;
+    const out = [];
+    let m;
+    while ((m = re.exec(s))) out.push(m[1]);
+    const joined = out.join('');
+    if (joined.replace(/\s/g, '') !== s.replace(/\s/g, '')) throw new Error('Invalid characters.');
+    return out;
+  }
+  function parse(toks) {
+    let i = 0;
+    function peek() { return toks[i]; }
+    function expr() {
+      let v = term();
+      while (peek() === '+' || peek() === '-') { const op = toks[i++]; const r = term(); v = op === '+' ? v + r : v - r; }
+      return v;
+    }
+    function term() {
+      let v = factor();
+      while (peek() === '*' || peek() === '/' || peek() === '%') { const op = toks[i++]; const r = factor(); v = op === '*' ? v * r : op === '/' ? v / r : v % r; }
+      return v;
+    }
+    function factor() {
+      let v = unary();
+      if (peek() === '^') { i++; const r = factor(); v = Math.pow(v, r); }
+      return v;
+    }
+    function unary() {
+      if (peek() === '-') { i++; return -unary(); }
+      if (peek() === '+') { i++; return unary(); }
+      return primary();
+    }
+    function primary() {
+      const t = toks[i++];
+      if (t === undefined) throw new Error('Unexpected end.');
+      if (t === '(') { const v = expr(); if (toks[i++] !== ')') throw new Error('Missing ).'); return v; }
+      if (/^\d/.test(t)) return Number(t);
+      if (/^[A-Za-z_]/.test(t)) {
+        if (t in consts) return consts[t];
+        if (t in fns) {
+          if (toks[i++] !== '(') throw new Error(`Missing ( after ${t}.`);
+          const args = [];
+          if (peek() !== ')') { args.push(expr()); while (peek() === ',') { i++; args.push(expr()); } }
+          if (toks[i++] !== ')') throw new Error('Missing ).');
+          return fns[t](...args);
+        }
+        throw new Error('Unknown name: ' + t);
+      }
+      throw new Error('Unexpected token: ' + t);
+    }
+    const v = expr();
+    if (i < toks.length) throw new Error('Trailing input: ' + toks.slice(i).join(' '));
+    return v;
+  }
+  document.getElementById('cGo')?.addEventListener('click', () => {
+    const err = document.getElementById('cErr'), out = document.getElementById('cOut');
+    err.textContent = '';
+    try {
+      const v = parse(tokenize(document.getElementById('cIn').value));
+      if (!Number.isFinite(v)) throw new Error('Result is not finite (division by zero?).');
+      const r = Math.round(v * 1e10) / 1e10;
+      out.textContent = String(r);
+      const li = document.createElement('li');
+      li.textContent = `${document.getElementById('cIn').value} = ${r}`;
+      document.getElementById('cHist').prepend(li);
+    } catch (e) { err.textContent = e.message; out.textContent = '—'; }
+  });
+  document.getElementById('cClr')?.addEventListener('click', () => { document.getElementById('cIn').value = ''; document.getElementById('cOut').textContent = '—'; document.getElementById('cErr').textContent = ''; });
+</script>

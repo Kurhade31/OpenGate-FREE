@@ -1,0 +1,48 @@
+---
+import Base from '../../../layouts/Base.astro';
+---
+<Base title="Unit converter" description="Engineering unit converter: length, mass, temperature, pressure, energy, power. Validated and mobile-friendly." canonicalPath="/tools/unit-converter/">
+  <section class="hero"><div class="wrap"><p class="kicker">Tool</p><h1>Unit converter</h1><p class="lead">SI-first factors. Temperature uses offsets correctly.</p></div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><div class="form-grid">
+      <label>Quantity<select id="uQ"><option value="length">Length</option><option value="mass">Mass</option><option value="temp">Temperature</option><option value="pressure">Pressure</option><option value="energy">Energy</option><option value="power">Power</option></select></label>
+      <label>Value<input id="uV" type="number" value="1" /></label>
+      <label>From<select id="uF"></select></label>
+      <label>To<select id="uT"></select></label>
+      <div class="btn-row"><button class="btn primary" id="uGo">Convert</button><button class="btn ghost" id="uClr">Reset</button></div>
+      <p class="meta" id="uErr" role="alert"></p>
+    </div></div>
+    <div class="card"><h3>Result</h3><p id="uOut" style="font-size:1.6rem;font-weight:800" role="status">—</p></div>
+  </div></section>
+</Base>
+<script>
+  const U = {
+    length: { m: 1, km: 1000, cm: 0.01, mm: 0.001, ft: 0.3048, in: 0.0254 },
+    mass: { kg: 1, g: 0.001, tonne: 1000, lb: 0.45359237 },
+    pressure: { Pa: 1, kPa: 1000, MPa: 1e6, bar: 1e5, psi: 6894.757 },
+    energy: { J: 1, kJ: 1000, Wh: 3600, kWh: 3.6e6, cal: 4.184 },
+    power: { W: 1, kW: 1000, hp: 745.7 },
+    temp: { C: 0, K: 0, F: 0 },
+  };
+  const q = document.getElementById('uQ'), f = document.getElementById('uF'), t = document.getElementById('uT');
+  function fill() {
+    const units = Object.keys(U[q.value]);
+    f.innerHTML = ''; t.innerHTML = '';
+    for (const u of units) { const a = document.createElement('option'); a.value = u; a.textContent = u; f.appendChild(a); const b = a.cloneNode(true); t.appendChild(b); }
+    if (units[1]) t.value = units[1];
+  }
+  function toC(v, u) { if (u === 'C') return v; if (u === 'K') return v - 273.15; return (v - 32) * 5/9; }
+  function fromC(v, u) { if (u === 'C') return v; if (u === 'K') return v + 273.15; return v * 9/5 + 32; }
+  q.addEventListener('change', fill); fill();
+  document.getElementById('uGo').addEventListener('click', () => {
+    const err = document.getElementById('uErr');
+    err.textContent = '';
+    const v = Number(document.getElementById('uV').value);
+    if (!Number.isFinite(v)) { err.textContent = 'Enter a valid number.'; return; }
+    let r;
+    if (q.value === 'temp') r = fromC(toC(v, f.value), t.value);
+    else r = (v * U[q.value][f.value]) / U[q.value][t.value];
+    document.getElementById('uOut').textContent = `${Math.round(r * 1e6) / 1e6} ${t.value}`;
+  });
+  document.getElementById('uClr').addEventListener('click', () => { document.getElementById('uV').value = '1'; document.getElementById('uOut').textContent = '—'; });
+</script>

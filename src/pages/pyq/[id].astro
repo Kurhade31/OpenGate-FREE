@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import pyq from '../../../data/questions/pyq.json';
+
+export async function getStaticPaths() {
+  return (pyq as { id: string }[]).map((q) => ({ params: { id: q.id } }));
+}
+const { id } = Astro.params;
+const q = (pyq as {
+  id: string; paper: string; subject: string; topic: string; year?: number; marks: number;
+  questionType: string; question: string; options: string[]; answer: string; correctOptions?: string[];
+  tolerance?: number; explanation: string; sourceLabel?: string; sourceUrl?: string;
+}[]).find((x) => x.id === id);
+if (!q) throw new Error(`Unknown PYQ: ${id}`);
+---
+<Base title={`PYQ ${q.year ?? ''} ${q.paper} — ${q.topic}`} description={`PYQ-style ${q.paper} ${q.subject} question with answer and community explanation. Official source linked.`} canonicalPath={`/pyq/${q.id}/`}>
+  <section class="hero"><div class="wrap">
+    <p class="kicker">PYQ-style · {q.paper} · {q.year ?? ''} · {q.questionType} · {q.marks} mark</p>
+    <h1>{q.subject}: {q.topic}</h1>
+    <p class="lead">{q.question}</p>
+    {q.options?.length ? <ul>{q.options.map((o) => (<li>{o}</li>))}</ul> : <p class="meta">NAT — enter a number{q.tolerance ? ` (±${q.tolerance})` : ''}.</p>}
+    <div class="btn-row"><a class="btn primary" href={`/practice/test/?q=${q.id}`}>Attempt timed →</a><button class="btn ghost" id="bBtn">Bookmark</button><button class="btn ghost" id="mBtn">+ Mistake notebook</button></div>
+  </div></section>
+  <section class="section"><div class="wrap grid cols-2">
+    <div class="card"><h2>Answer + community explanation</h2><details open><summary style="cursor:pointer">Reveal</summary><p><strong>Answer: {q.questionType === 'MSQ' ? (q.correctOptions ?? [q.answer]).join(' + ') : q.answer}</strong></p><p>{q.explanation}</p></details></div>
+    <div class="card"><h2>Source</h2><p><span class="pill">PYQ-style drill</span> <span class="pill green">Community explanation</span></p><p class="meta">{q.sourceLabel ?? 'Official paper archive'} · <a href={q.sourceUrl ?? 'https://gate2027.iitm.ac.in/'} rel="noopener">open official archive</a>. Representative wording for practice — verify against the official PDF for verbatim text and key.</p><p><a href="/pyq/">All PYQs →</a> · <a href={`/practice/test/?paper=${q.paper}&topic=${encodeURIComponent(q.topic)}`}>Similar practice →</a></p></div>
+  </div></section>
+</Base>
+<script define:vars={{ qid: q.id, qsub: q.subject, qtop: q.topic, qq: q.question }}>
+  const read = (k, f) => { try { const r = localStorage.getItem(k); if (!r) return f; return JSON.parse(r).data ?? f; } catch { return f; } };
+  const write = (k, d) => { try { localStorage.setItem(k, JSON.stringify({ schemaVersion: 1, data: d })); } catch {} };
+  document.getElementById('bBtn')?.addEventListener('click', (e) => {
+    const a = read('gf-bookmarks-q-v1', []);
+    if (!a.includes(qid)) a.push(qid);
+    write('gf-bookmarks-q-v1', a);
+    e.target.textContent = 'Bookmarked ✓';
+  });
+  document.getElementById('mBtn')?.addEventListener('click', (e) => {
+    const a = read('gf-mistakes-v2', []);
+    a.unshift({ id: 'm' + Date.now().toString(36), questionId: qid, question: qq, subject: qsub, topic: qtop, kind: 'concept-gap', why: '', fix: '', note: '', difficulty: 'medium', date: new Date().toISOString().slice(0, 10), reviewed: false });
+    write('gf-mistakes-v2', a.slice(0, 500));
+    e.target.textContent = 'Added ✓';
+  });
+</script>
