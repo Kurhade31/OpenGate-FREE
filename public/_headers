@@ -1,18 +1,13 @@
 /*
-  Cloudflare Pages headers: security + caching for a static educational site.
-  Served automatically from the site root on Pages (also respected in preview deploys).
-*/
-/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https:; font-src 'self' data: https:
+  Cache-Control: public, max-age=3600
+
 /search-index.json
   Cache-Control: public, max-age=3600
-/practice-index.json
-  Cache-Control: public, max-age=3600
+
 /sitemap-index.xml
-  Cache-Control: public, max-age=3600
-/sitemap-0.xml
   Cache-Control: public, max-age=3600
